@@ -1,2 +1,10 @@
-# Gnat
-Prototype implementation of the Distributed Gnat Protocol
+GNAT - Decentralized NAT Traversal
+===================
+---
+
+Using the GNAT API:
+---  
+
+Setting up a GNAT node:
+---
+
