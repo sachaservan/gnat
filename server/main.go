@@ -3,9 +3,9 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/json"
-	"gnat"
 	"flag"
 	"fmt"
+	"gnat"
 	"log"
 	"net/http"
 	"strconv"
@@ -98,7 +98,7 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
-	http.ServeFile(w, r, "home.html")
+	http.ServeFile(w, r, "./static/home.html")
 }
 
 func setupServer() {
