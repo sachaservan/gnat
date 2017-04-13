@@ -120,7 +120,7 @@ func initializeDHT() {
 	var port = flag.String("port", "8080", "Port to use")
 	var bIP = flag.String("bip", "", "IP Address to bootstrap against")
 	var bPort = flag.String("bport", "", "Port to bootstrap against")
-	var stun = flag.Bool("stun", false, "Use STUN")
+	var stun = flag.Bool("stun", true, "Use STUN")
 
 	flag.Parse()
 
