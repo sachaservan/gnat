@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"sort"
+	"strconv"
 	"sync"
 	"time"
 
@@ -552,7 +553,7 @@ func (dht *DHT) listen() {
 			case messageTypeForwardingRequest:
 				fmt.Println("Received forwarding request...")
 				forwardingInfo := msg.Data.(*forwardingRequestData)
-				sendToAddr := forwardingInfo.SendTo.IP.String() + ":" + string(forwardingInfo.SendTo.Port)
+				sendToAddr := forwardingInfo.SendTo.IP.String() + ":" + strconv.Itoa(forwardingInfo.SendTo.Port)
 				dht.options.OnForwardRequest(sendToAddr, forwardingInfo.Data)
 			}
 		case <-dht.networking.getDisconnect():
