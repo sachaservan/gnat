@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"fmt"
+
 	b58 "github.com/jbenet/go-base58"
 )
 
@@ -548,6 +550,7 @@ func (dht *DHT) listen() {
 				response.Type = messageTypePing
 				dht.networking.sendMessage(response, false, msg.ID)
 			case messageTypeForwardingRequest:
+				fmt.Println("Received forwarding request...")
 				forwardingInfo := msg.Data.(*forwardingRequestData)
 				dht.options.OnForwardRequest(forwardingInfo.SendTo.IP.String(), forwardingInfo.Data)
 			}

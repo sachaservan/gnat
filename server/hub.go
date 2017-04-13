@@ -7,6 +7,8 @@ package main
 import (
 	"strings"
 
+	"fmt"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -47,9 +49,11 @@ func newHub() *Hub {
 func (h *Hub) sendMessageToAddr(sendToIP string, message []byte) {
 	// TODO: make this a hashtable to avoid iterating over all clients
 	for client := range h.clients {
+		fmt.Println("Finding client to forward to...")
 		clientIP := strings.Split(client.conn.RemoteAddr().String(), ":")[0]
 		if clientIP == sendToIP {
 			client.send <- message
+			fmt.Println("...done")
 			break
 		}
 	}
