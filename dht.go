@@ -552,7 +552,8 @@ func (dht *DHT) listen() {
 			case messageTypeForwardingRequest:
 				fmt.Println("Received forwarding request...")
 				forwardingInfo := msg.Data.(*forwardingRequestData)
-				dht.options.OnForwardRequest(forwardingInfo.SendTo.IP.String(), forwardingInfo.Data)
+				sendToAddr := forwardingInfo.SendTo.IP.String() + ":" + string(forwardingInfo.SendTo.Port)
+				dht.options.OnForwardRequest(sendToAddr, forwardingInfo.Data)
 			}
 		case <-dht.networking.getDisconnect():
 			dht.networking.messagesFin()
