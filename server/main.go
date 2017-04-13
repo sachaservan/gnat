@@ -167,7 +167,7 @@ func initializeDHT() {
 func forwardMessage(ip string, port string, msg []byte) {
 	ipDigest := sha256.Sum256([]byte(ip))
 	id := b58.Encode(ipDigest[:])
-	fmt.Println("Searching for forwarding node: [" + ip + ": " + id + "]")
+	fmt.Println("Searching for forwarding node: [" + ip + ":" + port + "]")
 	node, err := dht.FindNode(id)
 
 	if err != nil {

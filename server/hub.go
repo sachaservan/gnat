@@ -47,6 +47,7 @@ func newHub() *Hub {
 func (h *Hub) sendMessageToAddr(sendToIP string, message []byte) {
 	// TODO: make this a hashtable to avoid iterating over all clients
 
+	fmt.Println("Send to is: " + sendToIP)
 	fmt.Println("Finding client to forward to...")
 	for client := range h.clients {
 		fmt.Println("..." + client.conn.RemoteAddr().String())
