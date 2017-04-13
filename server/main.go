@@ -8,7 +8,6 @@ import (
 	"gnat"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 
 	b58 "github.com/jbenet/go-base58"
@@ -28,84 +27,85 @@ func onForwardRequestReceived(forwardToIP string, msg []byte) {
 }
 
 func onClientMessageReceived(addr string, message []byte) {
-	u := map[string]string{}
-	resp := map[string]string{}
-	json.Unmarshal(message, &u)
-	clientIP := strings.Split(addr, ":")[0]
 
-	msgType := u["type"]
-	if msgType == "" {
-		return
-	}
-
-	switch msgType {
-
-	case "RQST_CONNECT":
-		fmt.Println("Received connection request from " + addr)
-
-		// generate digest hash of IP address
-		ipDigest := sha256.Sum256([]byte(clientIP))
-		id := b58.Encode(ipDigest[:])
-
-		// find the node connected to this client ip
-		node, err := dht.FindNode(id)
-
-		if err == nil {
-			if string(node.ID) == string(dht.GetSelfID()) {
-				fmt.Println("Sending connection accepted message")
-				resp["type"] = "CONNECTION_ACCEPTED"
-			} else {
-				fmt.Println("Sending redirect message")
-				resp["type"] = "REDIRECT"
-				resp["redirect"] = node.IP.String() + ":" + strconv.Itoa(node.Port)
-			}
-
-			respMsg, _ := json.Marshal(resp)
-			hub.sendMessageToAddr(clientIP, respMsg)
-		} else {
-			fmt.Println(err)
-		}
-		break
-	case "RQST_FORWARD":
-		fmt.Println("Received forwarding request from " + addr)
-
-		sendTo := u["sendTo"]
-		if !strings.Contains(sendTo, ":") {
-			// invalid ip address format
-			resp["error"] = "Bad request"
-			respMsg, _ := json.Marshal(resp)
-			hub.sendMessageToAddr(clientIP, respMsg)
+	headerLen := 0
+	for i := 0; i < len(message); i++ {
+		if string(message[i]) == "}" {
+			headerLen = i + 1
 			break
 		}
-		sendToIP := strings.Split(sendTo, ":")[0]
-		sendToPort := strings.Split(sendTo, ":")[1]
-
-		resp["sender"] = addr
-		resp["data"] = u["data"]
-		respMsg, _ := json.Marshal(resp)
-		forwardMessage(sendToIP, sendToPort, respMsg)
-		break
 	}
+
+	u := map[string]string{}
+	resp := map[string]string{}
+	json.Unmarshal(message[:headerLen], &u)
+	clientIP := strings.Split(addr, ":")[0]
+
+	fmt.Println(u)
+	sendTo := u["send_to"]
+	if sendTo == "" {
+		return
+	}
+
+	fmt.Println("Received forwarding request from " + addr)
+
+	if !strings.Contains(sendTo, ":") {
+		// invalid ip address format
+		resp["error"] = "Bad request"
+		respMsg, _ := json.Marshal(resp)
+		hub.sendMessageToAddr(clientIP, respMsg)
+	}
+
+	sendToIP := strings.Split(sendTo, ":")[0]
+	sendToPort := strings.Split(sendTo, ":")[1]
+
+	resp["from"] = addr
+	respHeader, _ := json.Marshal(resp)
+	forwardMessage(sendToIP, sendToPort, append(respHeader, message[headerLen:]...))
 }
 
-func serveHome(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.URL)
-	if r.URL.Path != "/" {
-		http.Error(w, "Not found", 404)
-		return
+func handConnectionRequest(w http.ResponseWriter, r *http.Request) {
+
+	// generate digest hash of IP address
+	ipDigest := sha256.Sum256([]byte(r.RemoteAddr))
+	id := b58.Encode(ipDigest[:])
+
+	// find the node connected to this client ip
+	node, err := dht.FindNode(id)
+
+	if err == nil {
+
+		if string(node.ID) == string(dht.GetSelfID()) {
+			fmt.Println("Client accepted by " + node.IP.String())
+			log.Println(r.URL)
+
+			if r.URL.Path != "/" {
+				http.Error(w, "Not found", 404)
+				return
+			}
+
+			if r.Method != "GET" {
+				http.Error(w, "Method not allowed", 405)
+				return
+			}
+
+			http.ServeFile(w, r, "./static/home.html")
+
+		} else {
+			fmt.Println("Redirecting to http:/" + node.IP.String())
+			http.Redirect(w, r, "http:/"+node.IP.String(), 301)
+		}
+
+	} else {
+		fmt.Println(err)
 	}
-	if r.Method != "GET" {
-		http.Error(w, "Method not allowed", 405)
-		return
-	}
-	http.ServeFile(w, r, "./static/home.html")
 }
 
 func setupServer() {
 	flag.Parse()
 	hub = newHub()
 	go hub.run(onClientMessageReceived)
-	http.HandleFunc("/", serveHome)
+	http.HandleFunc("/", handConnectionRequest)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
 	})
@@ -120,7 +120,7 @@ func initializeDHT() {
 	var port = flag.String("port", "8080", "Port to use")
 	var bIP = flag.String("bip", "", "IP Address to bootstrap against")
 	var bPort = flag.String("bport", "", "Port to bootstrap against")
-	var stun = flag.Bool("stun", true, "Use STUN")
+	var stun = flag.Bool("stun", false, "Use STUN")
 
 	flag.Parse()
 
