@@ -13,7 +13,7 @@ import (
 	b58 "github.com/jbenet/go-base58"
 )
 
-var addr = flag.String("localhost", ":8080", "http service address")
+var addr = flag.String("localhost", ":80", "http service address")
 var dht *gnat.DHT
 var hub *Hub
 
@@ -56,10 +56,10 @@ func onClientMessageReceived(addr string, message []byte) {
 		hub.sendMessageToAddr(clientIP, respMsg)
 	}
 
-	sendToIP := strings.Split(sendTo, ":")[0]
-	sendToPort := strings.Split(sendTo, ":")[1]
+	sendToIP := sendTo
+	sendToPort := "0"
 
-	resp["from"] = addr
+	resp["from"] = strings.Split(addr, ":")[0]
 	respHeader, _ := json.Marshal(resp)
 	forwardMessage(sendToIP, sendToPort, append(respHeader, message[headerLen:]...))
 }
