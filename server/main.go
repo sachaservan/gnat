@@ -39,7 +39,6 @@ func onClientMessageReceived(addr string, message []byte) {
 	u := map[string]string{}
 	resp := map[string]string{}
 	json.Unmarshal(message[:headerLen], &u)
-	clientIP := strings.Split(addr, ":")[0]
 
 	fmt.Println(u)
 	sendTo := u["send_to"]
@@ -48,13 +47,6 @@ func onClientMessageReceived(addr string, message []byte) {
 	}
 
 	fmt.Println("Received forwarding request from " + addr)
-
-	if !strings.Contains(sendTo, ":") {
-		// invalid ip address format
-		resp["error"] = "Bad request"
-		respMsg, _ := json.Marshal(resp)
-		hub.sendMessageToAddr(clientIP, respMsg)
-	}
 
 	sendToIP := sendTo
 	sendToPort := "0"
