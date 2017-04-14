@@ -5,14 +5,17 @@
 package main
 
 import (
+	"encoding/json"
 	"strings"
 
 	"fmt"
 
+	"errors"
+
 	"github.com/gorilla/websocket"
 )
 
-type OnMessage func(fromAddr string, msg []byte)
+type onForwardDataReceived func(addr string, header map[string]string, data []byte)
 
 // Client is a middleman between the websocket connection and the hub.
 type RequestMsg struct {
@@ -59,7 +62,7 @@ func (h *Hub) sendMessageToAddr(sendToIP string, message []byte) {
 	}
 }
 
-func (h *Hub) run(cb OnMessage) {
+func (h *Hub) run(cb onForwardDataReceived) {
 	for {
 		select {
 		case client := <-h.register:
@@ -70,7 +73,31 @@ func (h *Hub) run(cb OnMessage) {
 				close(client.send)
 			}
 		case req := <-h.request:
-			cb(req.conn.RemoteAddr().String(), req.msg)
+			header, data, err := parseRequest(req.msg)
+			if err == nil {
+				fromAddr := strings.Split(req.conn.RemoteAddr().String(), ":")[0]
+				cb(fromAddr, header, data)
+			}
 		}
 	}
+}
+
+func parseRequest(data []byte) (map[string]string, []byte, error) {
+
+	headerLen := 0
+	// find closing brace of header
+	for i := 0; i < len(data); i++ {
+		if string(data[i]) == "}" {
+			headerLen = i + 1
+			break
+		}
+
+		if i > 64 {
+			return nil, nil, errors.New("bad request: header too large")
+		}
+	}
+
+	header := map[string]string{}
+	err := json.Unmarshal(data[:headerLen], &header)
+	return header, data[headerLen:], err
 }

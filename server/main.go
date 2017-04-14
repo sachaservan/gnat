@@ -8,7 +8,6 @@ import (
 	"gnat"
 	"log"
 	"net/http"
-	"strings"
 
 	b58 "github.com/jbenet/go-base58"
 )
@@ -22,35 +21,25 @@ func main() {
 	setupServer()
 }
 
-func onForwardRequestReceived(forwardToIP string, msg []byte) {
-	hub.sendMessageToAddr(forwardToIP, msg)
+func onForwardRequestReceived(forwardToIP string, rqst []byte) {
+	hub.sendMessageToAddr(forwardToIP, rqst)
 }
 
-func onClientMessageReceived(addr string, message []byte) {
+func onForwardData(fromAddr string, header map[string]string, data []byte) {
 
-	headerLen := 0
-	for i := 0; i < len(message); i++ {
-		if string(message[i]) == "}" {
-			headerLen = i + 1
-			break
-		}
-	}
-
-	u := map[string]string{}
 	resp := map[string]string{}
-	json.Unmarshal(message[:headerLen], &u)
 
-	fmt.Println(u)
-	sendTo := u["send_to"]
+	sendTo := header["send_to"]
 	if sendTo == "" {
 		return
 	}
 
-	fmt.Println("Received forwarding request from " + addr)
+	fmt.Println("Received forwarding request from " + fromAddr)
 
-	resp["from"] = strings.Split(addr, ":")[0]
+	resp["from"] = fromAddr
+
 	respHeader, _ := json.Marshal(resp)
-	forwardMessage(sendTo, append(respHeader, message[headerLen:]...))
+	forwardMessage(sendTo, append(respHeader, data...))
 }
 
 func handConnectionRequest(w http.ResponseWriter, r *http.Request) {
@@ -93,7 +82,7 @@ func handConnectionRequest(w http.ResponseWriter, r *http.Request) {
 func setupServer() {
 	flag.Parse()
 	hub = newHub()
-	go hub.run(onClientMessageReceived)
+	go hub.run(onForwardData)
 	http.HandleFunc("/", handConnectionRequest)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
