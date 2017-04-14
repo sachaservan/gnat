@@ -51,7 +51,6 @@ func (h *Hub) sendMessageToAddr(sendToIP string, message []byte) {
 	for client := range h.clients {
 		fmt.Println("Finding client to forward to...")
 		clientIP := strings.Split(client.conn.RemoteAddr().String(), ":")[0]
-		sendToIP := strings.Split(sendToIP, ":")[0]
 		if clientIP == sendToIP {
 			client.send <- message
 			fmt.Println("...done")

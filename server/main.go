@@ -13,7 +13,7 @@ import (
 	b58 "github.com/jbenet/go-base58"
 )
 
-var addr = flag.String("localhost", ":8080", "http service address")
+var addr = flag.String("localhost", ":80", "http service address")
 var dht *gnat.DHT
 var hub *Hub
 
@@ -48,12 +48,9 @@ func onClientMessageReceived(addr string, message []byte) {
 
 	fmt.Println("Received forwarding request from " + addr)
 
-	sendToIP := sendTo
-	sendToPort := "0"
-
 	resp["from"] = strings.Split(addr, ":")[0]
 	respHeader, _ := json.Marshal(resp)
-	forwardMessage(sendToIP, sendToPort, append(respHeader, message[headerLen:]...))
+	forwardMessage(sendTo, append(respHeader, message[headerLen:]...))
 }
 
 func handConnectionRequest(w http.ResponseWriter, r *http.Request) {
@@ -108,11 +105,11 @@ func setupServer() {
 }
 
 func initializeDHT() {
-	var ip = flag.String("ip", "0.0.0.0", "IP Address to use")
-	var port = flag.String("port", "8080", "Port to use")
+	var ip = flag.String("ip", "127.0.0.1", "IP Address to use")
+	var port = flag.String("port", "2222", "Port to use")
 	var bIP = flag.String("bip", "", "IP Address to bootstrap against")
 	var bPort = flag.String("bport", "", "Port to bootstrap against")
-	var stun = flag.Bool("stun", true, "Use STUN")
+	var stun = flag.Bool("stun", false, "Use STUN")
 
 	flag.Parse()
 
@@ -156,16 +153,16 @@ func initializeDHT() {
 	}
 }
 
-func forwardMessage(ip string, port string, msg []byte) {
+func forwardMessage(ip string, msg []byte) {
 	ipDigest := sha256.Sum256([]byte(ip))
 	id := b58.Encode(ipDigest[:])
-	fmt.Println("Searching for forwarding node: [" + ip + ":" + port + "]")
+	fmt.Println("Searching for forwarding node...")
 	node, err := dht.FindNode(id)
 
 	if err != nil {
 		fmt.Println(err.Error())
 	} else {
 		fmt.Println("..forwarding node found:", node.IP.String())
-		dht.ForwardData(node, gnat.NewNetworkNode(ip, port), msg)
+		dht.ForwardData(node, gnat.NewNetworkNode(ip, "0"), msg)
 	}
 }
