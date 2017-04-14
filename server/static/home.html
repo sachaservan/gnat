@@ -23,6 +23,11 @@ window.onload = function () {
         if (!msg.value) {
             return false;
         }
+
+        var item = document.createElement("div");
+        item.innerHTML = "<b>Sent: </b>" + msg.value;
+        appendLog(item);
+
         conn.send(msg.value);
         msg.value = "";
         return false;
