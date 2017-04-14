@@ -13,7 +13,7 @@ import (
 	b58 "github.com/jbenet/go-base58"
 )
 
-var addr = flag.String("localhost", ":80", "http service address")
+var addr = flag.String("localhost", ":8080", "http service address")
 var dht *gnat.DHT
 var hub *Hub
 
