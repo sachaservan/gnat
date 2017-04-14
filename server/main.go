@@ -90,11 +90,13 @@ func setupServer() {
 	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
+	} else {
+		fmt.Println("Waiting for clients on " + *addr)
 	}
 }
 
 func initializeDHT() {
-	var ip = flag.String("ip", "127.0.0.1", "IP Address to use")
+	var ip = flag.String("ip", "0.0.0.0", "IP Address to use")
 	var port = flag.String("port", "2222", "Port to use")
 	var bIP = flag.String("bip", "", "IP Address to bootstrap against")
 	var bPort = flag.String("bport", "", "Port to bootstrap against")
@@ -130,7 +132,7 @@ func initializeDHT() {
 	fmt.Println("..done")
 
 	go func() {
-		fmt.Println("Now listening on " + dht.GetNetworkAddr())
+		fmt.Println("GNAT Kademlia listening on " + dht.GetNetworkAddr())
 		err := dht.Listen()
 		panic(err)
 	}()
