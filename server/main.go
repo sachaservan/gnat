@@ -87,11 +87,10 @@ func setupServer() {
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
 	})
+	fmt.Println("Waiting for clients on " + *addr)
 	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
-	} else {
-		fmt.Println("Waiting for clients on " + *addr)
 	}
 }
 
