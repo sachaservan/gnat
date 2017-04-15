@@ -96,8 +96,8 @@ func handConnectionRequest(w http.ResponseWriter, r *http.Request) {
 			http.ServeFile(w, r, "./static/home.html")
 
 		} else {
-			fmt.Println("Redirecting " + r.RemoteAddr + " to http:/" + node.IP.String())
-			http.Redirect(w, r, "http:/"+node.IP.String(), 301)
+			fmt.Println("Redirecting " + r.RemoteAddr + " to http://" + node.IP.String())
+			http.Redirect(w, r, "http://"+node.IP.String(), 301)
 		}
 
 	} else {
@@ -128,7 +128,7 @@ func initializeDHT() {
 	var port = flag.String("port", "1443", "Port to use")
 	var bIP = flag.String("bip", "45.55.18.163", "IP Address to bootstrap against")
 	var bPort = flag.String("bport", "1443", "Port to bootstrap against")
-	var stun = flag.Bool("stun", false, "Use STUN")
+	var stun = flag.Bool("stun", true, "Use STUN")
 
 	flag.Parse()
 
