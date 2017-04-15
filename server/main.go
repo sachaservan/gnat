@@ -9,16 +9,43 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/ccding/go-stun/stun"
 	b58 "github.com/jbenet/go-base58"
 )
 
-var addr = flag.String("localhost", ":80", "http service address")
+var addr = flag.String("localhost", ":2222", "http service address")
 var dht *gnat.DHT
 var hub *Hub
 
 func main() {
-	initializeDHT()
-	setupServer()
+	// test the network to discovery what type of NAT (if any)
+	// the client is behind.
+
+	fmt.Println("GNAT Node v0.0.1")
+	fmt.Println("  * Documentation:  https://gnat.cs.brown.edu/docs")
+	fmt.Println("  * Support:  	     https://gnat.cs.brown.edu/support")
+	fmt.Println("  * GitHub:  	     https://github.com/ogisan/gnat")
+	fmt.Println("  For more information, visit: http://gnat.cs.brown.edu")
+	fmt.Println("--------------------------------------------------------")
+	fmt.Print("1) Testing network...")
+	nat, host, err := stun.NewClient().Discover()
+	if err != nil {
+		fmt.Println("Error:a problem occured while testing your network.")
+		fmt.Println("TODO: try again later.")
+	}
+
+	fmt.Println("done.")
+	// acceptable type of NATs
+	if nat == stun.NATNone || nat == stun.NATFull {
+		fmt.Println("Network NAT configuration: " + nat.String())
+		fmt.Println("Node address: " + host.String())
+		initializeDHT()
+		setupServer()
+		fmt.Println("GNAT node setup and running!")
+	} else {
+		fmt.Println("Error: your network configuration does not support running a GNAT node.")
+		fmt.Println("TODO: update your router settings to have less restrictive settings and try again.")
+	}
 }
 
 func onForwardRequestReceived(forwardToIP string, rqst []byte) {
@@ -37,7 +64,6 @@ func onForwardData(fromAddr string, header map[string]string, data []byte) {
 	fmt.Println("Received forwarding request from " + fromAddr)
 
 	resp["from"] = fromAddr
-
 	respHeader, _ := json.Marshal(resp)
 	forwardMessage(sendTo, append(respHeader, data...))
 }
@@ -80,6 +106,8 @@ func handConnectionRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func setupServer() {
+
+	fmt.Print("4) Setting up HTTP server...")
 	flag.Parse()
 	hub = newHub()
 	go hub.run(onForwardData)
@@ -87,7 +115,8 @@ func setupServer() {
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
 	})
-	fmt.Println("Waiting for clients on " + *addr)
+	fmt.Println("done.")
+	fmt.Println("Listening on http://127.0.0.1" + *addr)
 	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
@@ -96,9 +125,9 @@ func setupServer() {
 
 func initializeDHT() {
 	var ip = flag.String("ip", "0.0.0.0", "IP Address to use")
-	var port = flag.String("port", "2222", "Port to use")
-	var bIP = flag.String("bip", "", "IP Address to bootstrap against")
-	var bPort = flag.String("bport", "", "Port to bootstrap against")
+	var port = flag.String("port", "1443", "Port to use")
+	var bIP = flag.String("bip", "45.55.18.163", "IP Address to bootstrap against")
+	var bPort = flag.String("bport", "1443", "Port to bootstrap against")
 	var stun = flag.Bool("stun", false, "Use STUN")
 
 	flag.Parse()
@@ -118,28 +147,24 @@ func initializeDHT() {
 		OnForwardRequest: onForwardRequestReceived,
 	})
 
-	fmt.Println("Opening socket..")
-
-	if *stun {
-		fmt.Println("Discovering public address using STUN..")
-	}
+	fmt.Print("2) Opening socket...")
 
 	err = dht.CreateSocket()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("..done")
+	fmt.Println("done.")
 
 	go func() {
-		fmt.Println("GNAT Kademlia listening on " + dht.GetNetworkAddr())
+		fmt.Println("--Socket open on " + dht.GetNetworkAddr())
 		err := dht.Listen()
 		panic(err)
 	}()
 
 	if len(bootstrapNodes) > 0 {
-		fmt.Println("Bootstrapping..")
+		fmt.Print("3) Bootstrapping into GNAT network...")
 		dht.Bootstrap()
-		fmt.Println("..done")
+		fmt.Println("done.")
 	}
 }
 
