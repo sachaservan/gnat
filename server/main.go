@@ -61,7 +61,7 @@ func onForwardData(fromAddr string, header map[string]string, data []byte) {
 		return
 	}
 
-	fmt.Println("Forward request from " + fromAddr)
+	fmt.Println("Received forwarding request from " + fromAddr)
 
 	resp["from"] = fromAddr
 	respHeader, _ := json.Marshal(resp)

@@ -52,10 +52,9 @@ func newHub() *Hub {
 func (h *Hub) sendMessageToAddr(sendToIP string, message []byte) {
 	// TODO: make this a hashtable to avoid iterating over all clients
 	for client := range h.clients {
-		fmt.Print("Finding recipient client...")
 		clientIP := strings.Split(client.conn.RemoteAddr().String(), ":")[0]
 		if clientIP == sendToIP {
-			fmt.Println("done. Forwarding data")
+			fmt.Println("done.\nForwarding data.")
 			client.send <- message
 			break
 		}
