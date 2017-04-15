@@ -154,8 +154,8 @@ func initializeDHT() {
 		panic(err)
 	}
 
+	fmt.Println("done.")
 	go func() {
-		fmt.Println("done.")
 		err := dht.Listen()
 		panic(err)
 	}()
