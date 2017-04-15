@@ -55,7 +55,7 @@ func (h *Hub) sendMessageToAddr(sendToIP string, message []byte) {
 		fmt.Print("Finding recipient client...")
 		clientIP := strings.Split(client.conn.RemoteAddr().String(), ":")[0]
 		if clientIP == sendToIP {
-			fmt.Println("done. Forwarding message.")
+			fmt.Println("done. Forwarding data")
 			client.send <- message
 			break
 		}

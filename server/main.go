@@ -22,9 +22,9 @@ func main() {
 	// the client is behind.
 
 	fmt.Println("GNAT Node v0.0.1")
-	fmt.Println("  * Documentation:  https://gnat.cs.brown.edu/docs")
-	fmt.Println("  * Support:  	     https://gnat.cs.brown.edu/support")
-	fmt.Println("  * GitHub:  	     https://github.com/ogisan/gnat")
+	fmt.Println("  *Documentation:   https://gnat.cs.brown.edu/docs")
+	fmt.Println("  *Support:  	     https://gnat.cs.brown.edu/support")
+	fmt.Println("  *GitHub:  	     https://github.com/ogisan/gnat")
 	fmt.Println("  For more information, visit: http://gnat.cs.brown.edu")
 	fmt.Println("--------------------------------------------------------")
 	fmt.Print("1) Testing network...")
@@ -34,7 +34,7 @@ func main() {
 		fmt.Println("TODO: try again later.")
 	}
 
-	fmt.Println("done.")
+	fmt.Println("done")
 	// acceptable type of NATs
 	if nat == stun.NATNone || nat == stun.NATFull {
 		fmt.Println("Network NAT configuration: " + nat.String())
@@ -115,7 +115,7 @@ func setupServer() {
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
 	})
-	fmt.Println("done.")
+	fmt.Println("done")
 	fmt.Println("Listening on http://127.0.0.1" + *addr)
 	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
@@ -154,7 +154,7 @@ func initializeDHT() {
 		panic(err)
 	}
 
-	fmt.Println("done.")
+	fmt.Println("done")
 	go func() {
 		err := dht.Listen()
 		panic(err)
@@ -163,7 +163,7 @@ func initializeDHT() {
 	if len(bootstrapNodes) > 0 {
 		fmt.Print("3) Bootstrapping into GNAT network...")
 		dht.Bootstrap()
-		fmt.Println("done.")
+		fmt.Println("done")
 	}
 }
 
@@ -172,7 +172,7 @@ func forwardMessage(ip string, msg []byte) {
 	id := b58.Encode(ipDigest[:])
 	fmt.Print("Finding forwarding node...")
 	node, err := dht.FindNode(id)
-	fmt.Println("done.")
+	fmt.Println("done")
 	if err != nil {
 		fmt.Println(err.Error())
 	} else {
