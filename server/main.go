@@ -8,6 +8,7 @@ import (
 	"gnat"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/ccding/go-stun/stun"
 	b58 "github.com/jbenet/go-base58"
@@ -97,7 +98,7 @@ func handConnectionRequest(w http.ResponseWriter, r *http.Request) {
 
 		} else {
 			fmt.Println("Redirecting " + r.RemoteAddr + " to http://" + node.IP.String())
-			http.Redirect(w, r, "http://"+node.IP.String(), 301)
+			http.Redirect(w, r, "http://"+node.IP.String()+":"+strconv.Itoa(node.Port), 301)
 		}
 
 	} else {
