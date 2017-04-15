@@ -17,18 +17,19 @@ import (
 
 type onForwardDataReceived func(addr string, header map[string]string, data []byte)
 
-// Client is a middleman between the websocket connection and the hub.
+// RequestMsg is a struct containing information
+// to forward to client
 type RequestMsg struct {
 	// The websocket connection.
 	conn *websocket.Conn
 	msg  []byte
 }
 
-// hub maintains the set of active clients and broadcasts messages to the
+// Hub maintains the set of active clients and broadcasts messages to the
 // clients.
 type Hub struct {
 	// Registered clients.
-	clients map[*Client]bool
+	clients map[string]*Client
 
 	// Inbound messages from the clients.
 	request chan *RequestMsg
@@ -45,19 +46,18 @@ func newHub() *Hub {
 		request:    make(chan *RequestMsg),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
-		clients:    make(map[*Client]bool),
+		clients:    make(map[string]*Client),
 	}
 }
 
 func (h *Hub) sendMessageToAddr(sendToIP string, message []byte) {
-	// TODO: make this a hashtable to avoid iterating over all clients
-	for client := range h.clients {
-		clientIP := strings.Split(client.conn.RemoteAddr().String(), ":")[0]
-		if clientIP == sendToIP {
-			fmt.Println("done.\nForwarding data.")
-			client.send <- message
-			break
-		}
+
+	fmt.Print("Sending data to client...")
+	if client, ok := h.clients[sendToIP]; ok {
+		client.send <- message
+		fmt.Println("done")
+	} else {
+		fmt.Println("\nError: client not connected")
 	}
 }
 
@@ -65,10 +65,12 @@ func (h *Hub) run(cb onForwardDataReceived) {
 	for {
 		select {
 		case client := <-h.register:
-			h.clients[client] = true
+			clientIP := strings.Split(client.conn.RemoteAddr().String(), ":")[0]
+			h.clients[clientIP] = client
 		case client := <-h.unregister:
-			if _, ok := h.clients[client]; ok {
-				delete(h.clients, client)
+			clientIP := strings.Split(client.conn.RemoteAddr().String(), ":")[0]
+			if _, ok := h.clients[clientIP]; ok {
+				delete(h.clients, clientIP)
 				close(client.send)
 			}
 		case req := <-h.request:

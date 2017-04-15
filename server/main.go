@@ -37,8 +37,8 @@ func main() {
 	fmt.Println("done")
 	// acceptable type of NATs
 	if nat == stun.NATNone || nat == stun.NATFull {
-		fmt.Println("Network NAT configuration: " + nat.String())
-		fmt.Println("Node address: " + host.String())
+		fmt.Println("  Network NAT configuration: " + nat.String())
+		fmt.Println("  Node address: " + host.String())
 		initializeDHT()
 		setupServer()
 		fmt.Println("GNAT node setup and running!")

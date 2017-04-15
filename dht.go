@@ -458,6 +458,9 @@ func (dht *DHT) iterate(t int, target []byte, data []byte) (foundNode *NetworkNo
 // we store these buckets in big-endian order so we look at the bits
 // from right to left in order to find the appropriate bucket
 func (dht *DHT) addNode(node *node) {
+
+	fmt.Println("Adding " + node.IP.String() + " to bucket")
+
 	index := getBucketIndexFromDifferingBit(dht.ht.Self.ID, node.ID)
 
 	// Make sure node doesn't already exist
