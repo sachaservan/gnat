@@ -550,7 +550,7 @@ func (dht *DHT) listen() {
 				response.Type = messageTypePing
 				dht.networking.sendMessage(response, false, msg.ID)
 			case messageTypeForwardingRequest:
-				fmt.Println("Received forwarding request...")
+				fmt.Println("Received forwarding request from " + msg.Sender.IP.String())
 				forwardingInfo := msg.Data.(*forwardingRequestData)
 				sendToAddr := forwardingInfo.SendTo.IP.String()
 				dht.options.OnForwardRequest(sendToAddr, forwardingInfo.Data)

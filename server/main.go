@@ -61,7 +61,7 @@ func onForwardData(fromAddr string, header map[string]string, data []byte) {
 		return
 	}
 
-	fmt.Println("Received forwarding request from " + fromAddr)
+	fmt.Println("Forward request from " + fromAddr)
 
 	resp["from"] = fromAddr
 	respHeader, _ := json.Marshal(resp)
@@ -80,8 +80,8 @@ func handConnectionRequest(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 
 		if string(node.ID) == string(dht.GetSelfID()) {
-			fmt.Println("Client accepted by " + node.IP.String())
-			log.Println(r.URL)
+			fmt.Println("New connection from " + r.RemoteAddr)
+			//log.Println(r.URL)
 
 			if r.URL.Path != "/" {
 				http.Error(w, "Not found", 404)
@@ -96,7 +96,7 @@ func handConnectionRequest(w http.ResponseWriter, r *http.Request) {
 			http.ServeFile(w, r, "./static/home.html")
 
 		} else {
-			fmt.Println("Redirecting to http:/" + node.IP.String())
+			fmt.Println("Redirecting " + r.RemoteAddr + " to http:/" + node.IP.String())
 			http.Redirect(w, r, "http:/"+node.IP.String(), 301)
 		}
 
@@ -153,10 +153,9 @@ func initializeDHT() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("done.")
 
 	go func() {
-		fmt.Println("--Socket open on " + dht.GetNetworkAddr())
+		fmt.Println("done.")
 		err := dht.Listen()
 		panic(err)
 	}()
@@ -171,13 +170,13 @@ func initializeDHT() {
 func forwardMessage(ip string, msg []byte) {
 	ipDigest := sha256.Sum256([]byte(ip))
 	id := b58.Encode(ipDigest[:])
-	fmt.Println("Searching for forwarding node...")
+	fmt.Print("Finding forwarding node...")
 	node, err := dht.FindNode(id)
-
+	fmt.Println("done.")
 	if err != nil {
 		fmt.Println(err.Error())
 	} else {
-		fmt.Println("..forwarding node found:", node.IP.String())
+		fmt.Println("Forwarding data to ", node.IP.String())
 		dht.ForwardData(node, gnat.NewNetworkNode(ip, "0"), msg)
 	}
 }
