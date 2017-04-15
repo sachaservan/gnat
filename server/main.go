@@ -23,8 +23,8 @@ func main() {
 
 	fmt.Println("GNAT Node v0.0.1")
 	fmt.Println("  *Documentation:   https://gnat.cs.brown.edu/docs")
-	fmt.Println("  *Support:  	     https://gnat.cs.brown.edu/support")
-	fmt.Println("  *GitHub:  	     https://github.com/ogisan/gnat")
+	fmt.Println("  *Support:         https://gnat.cs.brown.edu/support")
+	fmt.Println("  *GitHub:          https://github.com/ogisan/gnat")
 	fmt.Println("  For more information, visit: http://gnat.cs.brown.edu")
 	fmt.Println("--------------------------------------------------------")
 	fmt.Print("1) Testing network...")
