@@ -221,6 +221,19 @@ func (ht *hashTable) getAllNodesInBucketCloserThan(bucket int, id []byte) [][]by
 	return nodes
 }
 
+func (ht *hashTable) getCloserNode(node1 *NetworkNode, node2 *NetworkNode, id []byte) *NetworkNode {
+
+	d1 := ht.getDistance(id, node1.ID)
+	d2 := ht.getDistance(id, node2.ID)
+
+	result := d1.Sub(d1, d2)
+	if result.Sign() > -1 {
+		return node1
+	}
+
+	return node2
+}
+
 func (ht *hashTable) getTotalNodesInBucket(bucket int) int {
 	ht.mutex.Lock()
 	defer ht.mutex.Unlock()

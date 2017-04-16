@@ -314,10 +314,17 @@ func (dht *DHT) iterate(t int, target []byte, data []byte) (foundNode *NetworkNo
 	// We keep a reference to the closestNode. If after performing a search
 	// if we do not find a closer node, we stop searching.
 	if len(sl.Nodes) == 0 {
-		return nil, nil
+		return dht.ht.Self, nil
 	}
 
 	closestNode := sl.Nodes[0]
+
+	nodeCompare := bytes.Compare(
+		dht.ht.getCloserNode(dht.ht.Self, closestNode, target).ID, dht.ht.Self.ID)
+
+	if nodeCompare == 0 {
+		return dht.ht.Self, nil
+	}
 
 	if t == iterateFindNode {
 		bucket := getBucketIndexFromDifferingBit(target, dht.ht.Self.ID)
