@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"time"
 
+	"fmt"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -34,8 +36,8 @@ var (
 )
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
+	ReadBufferSize:  2048,
+	WriteBufferSize: 2048,
 }
 
 // Client is a middleman between the websocket connection and the hub.
@@ -67,7 +69,10 @@ func (c *Client) readPump() {
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
 				log.Printf("error: %v", err)
+			} else {
+				fmt.Printf("error: %v", err)
 			}
+
 			break
 		}
 		request := &RequestMsg{conn: c.conn, msg: bytes.TrimSpace(bytes.Replace(message, newline, space, -1))}

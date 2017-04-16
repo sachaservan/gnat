@@ -15,9 +15,11 @@ import (
 	b58 "github.com/jbenet/go-base58"
 )
 
+var maxRouteCacheSize = 500
 var addr = flag.String("localhost", ":2222", "http service address")
 var dht *gnat.DHT
 var hub *Hub
+var routes map[string]*gnat.NetworkNode
 
 func main() {
 	// test the network to discovery what type of NAT (if any)
@@ -48,6 +50,9 @@ func main() {
 		fmt.Println("Error: your network configuration does not support running a GNAT node.")
 		fmt.Println("TODO: update your router settings to have less restrictive settings and try again.")
 	}
+
+	// keep a route cache
+	routes = make(map[string]*gnat.NetworkNode)
 }
 
 func onForwardRequestReceived(forwardToIP string, rqst []byte) {
@@ -174,7 +179,20 @@ func forwardMessage(ip string, msg []byte) {
 	ipDigest := sha256.Sum256([]byte(ip))
 	id := b58.Encode(ipDigest[:])
 	fmt.Print("Finding forwarding node...")
-	node, err := dht.FindNode(id)
+
+	var err error
+	var foundNode *gnat.NetworkNode
+	if node, ok := routes[id]; ok {
+		foundNode = node
+	} else {
+		foundNode, err = dht.FindNode(id)
+		routes[id] = foundNode
+		if len(routes) > maxRouteCacheSize {
+			// clear the list
+			routes = make(map[string]*gnat.NetworkNode)
+		}
+	}
+
 	fmt.Println("done")
 	if err != nil {
 		fmt.Println(err.Error())
