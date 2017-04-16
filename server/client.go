@@ -69,7 +69,7 @@ func (c *Client) readPump() {
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
 				log.Printf("error: %v", err)
-			} else {
+			} else if err == websocket.ErrReadLimit {
 				fmt.Printf("error: %v", err)
 			}
 
