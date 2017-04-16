@@ -9,6 +9,8 @@ import (
 	"log"
 	"net/http"
 
+	"strings"
+
 	"github.com/ccding/go-stun/stun"
 	b58 "github.com/jbenet/go-base58"
 )
@@ -71,7 +73,8 @@ func onForwardData(fromAddr string, header map[string]string, data []byte) {
 func handConnectionRequest(w http.ResponseWriter, r *http.Request) {
 
 	// generate digest hash of IP address
-	ipDigest := sha256.Sum256([]byte(r.RemoteAddr))
+	clientIP := strings.Split(r.RemoteAddr, ":")[0]
+	ipDigest := sha256.Sum256([]byte(clientIP))
 	id := b58.Encode(ipDigest[:])
 
 	// find the node connected to this client ip
@@ -96,7 +99,7 @@ func handConnectionRequest(w http.ResponseWriter, r *http.Request) {
 			http.ServeFile(w, r, "./static/home.html")
 
 		} else {
-			fmt.Println("Redirecting " + r.RemoteAddr + " to http://" + node.IP.String())
+			fmt.Println("Redirecting " + r.RemoteAddr + " to http://" + node.IP.String() + ":2222")
 			http.Redirect(w, r, "http://"+node.IP.String()+":2222", 301)
 		}
 
