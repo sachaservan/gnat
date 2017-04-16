@@ -86,9 +86,8 @@ func handConnectionRequest(w http.ResponseWriter, r *http.Request) {
 	node, err := dht.FindNode(id)
 
 	if err == nil {
-
 		if string(node.ID) == string(dht.GetSelfID()) {
-			fmt.Println("New connection from " + r.RemoteAddr)
+			fmt.Println("New connection from " + r.RemoteAddr + " id: " + id)
 			//log.Println(r.URL)
 
 			if r.URL.Path != "/" {
@@ -172,13 +171,15 @@ func initializeDHT() {
 		fmt.Print("3) Bootstrapping into GNAT network...")
 		dht.Bootstrap()
 		fmt.Println("done")
+	} else {
+		fmt.Println("3) Skipping GNAT bootstrap")
 	}
 }
 
 func forwardMessage(ip string, msg []byte) {
 	ipDigest := sha256.Sum256([]byte(ip))
 	id := b58.Encode(ipDigest[:])
-	fmt.Print("Finding forwarding node...")
+	fmt.Print("Finding forwarding node for id " + id + "...")
 
 	var err error
 	var foundNode *gnat.NetworkNode
