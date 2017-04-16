@@ -197,7 +197,7 @@ func forwardMessage(ip string, msg []byte) {
 	if err != nil {
 		fmt.Println(err.Error())
 	} else {
-		fmt.Println("Forwarding data to ", node.IP.String())
-		dht.ForwardData(node, gnat.NewNetworkNode(ip, "0"), msg)
+		fmt.Println("Forwarding data to ", foundNode.IP.String())
+		dht.ForwardData(foundNode, gnat.NewNetworkNode(ip, "0"), msg)
 	}
 }
