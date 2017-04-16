@@ -22,6 +22,9 @@ var hub *Hub
 var routes map[string]*gnat.NetworkNode
 
 func main() {
+	// keep a route cache
+	routes = make(map[string]*gnat.NetworkNode)
+
 	// test the network to discovery what type of NAT (if any)
 	// the client is behind.
 
@@ -50,9 +53,6 @@ func main() {
 		fmt.Println("Error: your network configuration does not support running a GNAT node.")
 		fmt.Println("TODO: update your router settings to have less restrictive settings and try again.")
 	}
-
-	// keep a route cache
-	routes = make(map[string]*gnat.NetworkNode)
 }
 
 func onForwardRequestReceived(forwardToIP string, rqst []byte) {
