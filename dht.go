@@ -11,6 +11,8 @@ import (
 
 	"fmt"
 
+	"strconv"
+
 	b58 "github.com/jbenet/go-base58"
 )
 
@@ -466,6 +468,8 @@ func (dht *DHT) iterate(t int, target []byte, data []byte) (foundNode *NetworkNo
 // from right to left in order to find the appropriate bucket
 func (dht *DHT) addNode(node *node) {
 	index := getBucketIndexFromDifferingBit(dht.ht.Self.ID, node.ID)
+
+	fmt.Println("Adding node " + node.IP.String() + ":" + strconv.Itoa(node.Port))
 
 	// Make sure node doesn't already exist
 	// If it does, mark it as seen
