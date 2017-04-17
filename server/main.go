@@ -63,13 +63,13 @@ func sendMessageToClient(sendToIP string, message []byte) error {
 
 func forwardingRequestHandler(fromIP string, header map[string]string, data []byte) {
 
-	ipDigest := sha256.Sum256([]byte(fromIP))
-	id := b58.Encode(ipDigest[:])
-
 	sendTo := header["to"]
 	if sendTo == "" {
 		return
 	}
+
+	ipDigest := sha256.Sum256([]byte(sendTo))
+	id := b58.Encode(ipDigest[:])
 
 	fmt.Println("Received forwarding request from " + fromIP)
 
@@ -80,12 +80,12 @@ func forwardingRequestHandler(fromIP string, header map[string]string, data []by
 
 	var err error
 	var foundNode *gnat.NetworkNode
-	if node, ok := forwardingCache[sendTo]; ok {
+	if node, ok := forwardingCache[id]; ok {
 		foundNode = node
 	} else {
 		fmt.Println("Performing Kademlia.FIND_NODE operation")
 		foundNode, err = dht.FindNode(id)
-		forwardingCache[sendTo] = foundNode
+		forwardingCache[id] = foundNode
 
 		// if cache too big, reset it
 		if len(forwardingCache) > maxRouteCacheSize {
