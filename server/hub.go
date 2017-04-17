@@ -52,9 +52,8 @@ func newHub() *Hub {
 
 func (h *Hub) sendMessageToClient(sendToIP string, message []byte) error {
 
-	if _, ok := h.clients[sendToIP]; ok {
+	if client, ok := h.clients[sendToIP]; ok {
 		fmt.Print("Sending data to client")
-		client := h.clients[sendToIP]
 		client.send <- message
 	} else {
 		fmt.Println("\nError: client not connected")

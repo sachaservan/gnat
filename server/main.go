@@ -57,6 +57,10 @@ func main() {
 	}
 }
 
+func sendMessageToClient(sendToIP string, message []byte) error {
+	return hub.sendMessageToClient(sendToIP, message)
+}
+
 func forwardingRequestHandler(fromAddr string, header map[string]string, data []byte) {
 
 	ip := strings.Split(fromAddr, ":")[0]
@@ -173,7 +177,7 @@ func initializeDHT() {
 		IP:                *ip,
 		Port:              *port,
 		UseStun:           *stun,
-		ForwardingHandler: hub.sendMessageToClient,
+		ForwardingHandler: sendMessageToClient,
 	})
 
 	fmt.Print("2) Opening socket...")
