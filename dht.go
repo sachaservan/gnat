@@ -581,7 +581,10 @@ func (dht *DHT) listen() {
 				response.Receiver = msg.Sender
 				response.Type = messageTypeForwardingAck
 				response.Data = &forwardingAckData{Forwarded: err == nil, Error: err}
-				dht.networking.sendMessage(response, false, msg.ID)
+				_, err = dht.networking.sendMessage(response, false, msg.ID)
+				if err != nil {
+					fmt.Printf("error: sending response failed %v\n", err)
+				}
 			}
 
 		case <-dht.networking.getDisconnect():
