@@ -168,7 +168,7 @@ func (dht *DHT) ForwardDataVia(node *NetworkNode, sendTo *NetworkNode, data []by
 	message.Data = &forwardingRequestData{SendTo: sendTo, Data: data}
 	res, err := dht.networking.sendMessage(message, true, -1)
 	if err != nil {
-		fmt.Printf("Error while forwarding: %v\n", err)
+		fmt.Printf("forwarding: %v\n", err)
 		return false, err
 	}
 
@@ -179,6 +179,9 @@ func (dht *DHT) ForwardDataVia(node *NetworkNode, sendTo *NetworkNode, data []by
 			return false, nil
 		}
 		ack := result.Data.(*forwardingAckData)
+		if ack.ErrorMsg != nil {
+			return ack.Success, errors.New(string(ack.ErrorMsg))
+		}
 		return ack.Success, nil
 	case <-time.After(dht.options.TMsgTimeout):
 		dht.networking.cancelResponse(res)
