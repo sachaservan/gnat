@@ -263,14 +263,6 @@ func (rn *realNetworking) listen() error {
 							continue
 						}
 
-						if msg.Type != rn.responseMap[msg.ID].query.Type {
-							close(rn.responseMap[msg.ID].ch)
-							delete(rn.responseMap, msg.ID)
-							rn.mutex.Unlock()
-							fmt.Println("networking: response message type does not match expected type")
-							continue
-						}
-
 						resChan := rn.responseMap[msg.ID].ch
 						rn.mutex.Unlock()
 						resChan <- msg
