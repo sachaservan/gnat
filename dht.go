@@ -179,7 +179,7 @@ func (dht *DHT) ForwardDataVia(node *NetworkNode, sendTo *NetworkNode, data []by
 			return false, nil
 		}
 		ack := result.Data.(*forwardingAckData)
-		return ack.Success, result.Error
+		return ack.Success, nil
 	case <-time.After(dht.options.TMsgTimeout):
 		dht.networking.cancelResponse(res)
 		return false, errors.New("error: forwarding acknowlegement timed out")
@@ -576,7 +576,7 @@ func (dht *DHT) listen() {
 				err := dht.options.ForwardingHandler(sendToAddr, forwardingInfo.Data)
 
 				// respond to node which acknowledgement of forward (or error)
-				response := &message{IsResponse: true, Error: err}
+				response := &message{IsResponse: true}
 				response.Sender = dht.ht.Self
 				response.Receiver = msg.Sender
 				response.Type = messageTypeForwardingAck
