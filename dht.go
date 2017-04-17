@@ -158,7 +158,7 @@ func (dht *DHT) FindNode(key string) (foundNode *NetworkNode, err error) {
 	return node, err
 }
 
-// ForwardData sends a forwarding data to responsible node which then
+// ForwardDataVia sends a forwarding data to responsible node which then
 // sends it to the recepient
 func (dht *DHT) ForwardDataVia(node *NetworkNode, sendTo *NetworkNode, data []byte) error {
 	message := &message{}
