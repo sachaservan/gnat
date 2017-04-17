@@ -160,19 +160,19 @@ func (dht *DHT) FindNode(key string) (foundNode *NetworkNode, err error) {
 
 // ForwardDataVia sends a forwarding data to responsible node which then
 // sends it to the recepient
-func (dht *DHT) ForwardDataVia(node *NetworkNode, sendTo *NetworkNode, data []byte) error {
+func (dht *DHT) ForwardDataVia(node *NetworkNode, sendTo *NetworkNode, data []byte) (bool, error) {
 	message := &message{}
 	message.Sender = dht.ht.Self
 	message.Receiver = node
 	message.Type = messageTypeForwardingRequest
 	message.Data = &forwardingRequestData{SendTo: sendTo, Data: data}
 	res, err := dht.networking.sendMessage(message, true, -1)
-
+	fmt.Printf("Error while forwarding: %v", err)
 	if err != nil {
-		return err
+		return false, err
 	}
-
-	return res.query.Error
+	ack := res.query.Data.(reponseDataForwardingAck)
+	return ack.Forwarded, res.query.Error
 }
 
 // NumNodes returns the total number of nodes stored in the local routing table
@@ -569,6 +569,7 @@ func (dht *DHT) listen() {
 				response.Sender = dht.ht.Self
 				response.Receiver = msg.Sender
 				response.Type = messageTypeForwardingAck
+				response.Data = &reponseDataForwardingAck{Forwarded: true}
 				dht.networking.sendMessage(response, false, msg.ID)
 			}
 

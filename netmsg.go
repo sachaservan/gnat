@@ -24,6 +24,10 @@ type message struct {
 	Data       interface{}
 }
 
+type reponseDataForwardingAck struct {
+	Forwarded bool
+}
+
 type queryDataFindNode struct {
 	Target []byte
 }
