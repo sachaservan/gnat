@@ -80,12 +80,12 @@ func forwardingRequestHandler(fromIP string, header map[string]string, data []by
 
 	var err error
 	var foundNode *gnat.NetworkNode
-	if node, ok := forwardingCache[id]; ok {
+	if node, ok := forwardingCache[sendTo]; ok {
 		foundNode = node
 	} else {
 		fmt.Println("Performing Kademlia.FIND_NODE operation")
 		foundNode, err = dht.FindNode(id)
-		forwardingCache[id] = foundNode
+		forwardingCache[sendTo] = foundNode
 
 		// if cache too big, reset it
 		if len(forwardingCache) > maxRouteCacheSize {
@@ -99,7 +99,7 @@ func forwardingRequestHandler(fromIP string, header map[string]string, data []by
 		fmt.Println("Forwarding data to ", foundNode.IP.String())
 		success := false
 		success, err = dht.ForwardDataVia(foundNode, gnat.NewNetworkNode(sendTo, "0"), append(msgHeader, data...))
-		fmt.Printf("Did forward: %v error: %v\n", success, err)
+		fmt.Printf("Did forward: %v, %v\n", success, err)
 	}
 }
 
