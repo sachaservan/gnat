@@ -226,7 +226,7 @@ func (ht *hashTable) getCloserNode(node1 *NetworkNode, node2 *NetworkNode, id []
 	d1 := ht.getDistance(id, node1.ID)
 	d2 := ht.getDistance(id, node2.ID)
 
-	result := d1.Sub(d1, d2)
+	result := d2.Sub(d1, d2)
 	if result.Sign() > -1 {
 		return node1
 	}
