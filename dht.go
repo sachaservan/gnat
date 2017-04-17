@@ -333,12 +333,12 @@ func (dht *DHT) iterate(t int, target []byte, data []byte) (foundNode *NetworkNo
 	}
 
 	closestNode := sl.Nodes[0]
+	fmt.Println("iterate: closest node found " + closestNode.IP.String())
 
 	nodeCompare := bytes.Compare(
 		dht.ht.getCloserNode(dht.ht.Self, closestNode, target).ID, dht.ht.Self.ID)
 
 	if nodeCompare == 0 {
-		fmt.Println("iterate: closest node found " + closestNode.IP.String())
 		return dht.ht.Self, nil
 	}
 
