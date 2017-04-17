@@ -14,6 +14,10 @@ const (
 	messageTypeForwardingAck
 )
 
+const (
+	errorTypeClientNotConnected = iota
+)
+
 type message struct {
 	Sender     *NetworkNode
 	Receiver   *NetworkNode
@@ -25,7 +29,9 @@ type message struct {
 }
 
 type forwardingAckData struct {
-	Success bool
+	Success   bool
+	ErrorType int
+	ErrorMsg  []byte
 }
 
 type queryDataFindNode struct {

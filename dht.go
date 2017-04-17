@@ -580,7 +580,15 @@ func (dht *DHT) listen() {
 				response.Sender = dht.ht.Self
 				response.Receiver = msg.Sender
 				response.Type = messageTypeForwardingAck
-				response.Data = &forwardingAckData{Success: err == nil}
+				respData := &forwardingAckData{}
+				if err != nil {
+					respData.Success = false
+					respData.ErrorType = errorTypeClientNotConnected
+					respData.ErrorMsg = []byte("error: client not connected to " + dht.ht.Self.IP.String())
+				} else {
+					respData.Success = true
+				}
+				response.Data = respData
 				_, err = dht.networking.sendMessage(response, false, msg.ID)
 				if err != nil {
 					fmt.Printf("error: sending response failed %v\n", err)

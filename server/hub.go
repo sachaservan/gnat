@@ -56,7 +56,7 @@ func (h *Hub) sendMessageToClient(sendToIP string, message []byte) error {
 		fmt.Println("Sending data to " + sendToIP)
 		client.send <- message
 	} else {
-		fmt.Println("\nerror: client not connected")
+		fmt.Println("error: client not connected")
 		return errors.New("forward: " + sendToIP + " not connected")
 	}
 

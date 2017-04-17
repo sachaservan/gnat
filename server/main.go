@@ -102,7 +102,7 @@ func forwardingRequestHandler(fromIP string, header map[string]string, data []by
 		if err != nil {
 			fmt.Println(err)
 		}
-		fmt.Printf("Did forward %v\n", success)
+		fmt.Printf("Did forward: %v\n", success)
 	}
 }
 
