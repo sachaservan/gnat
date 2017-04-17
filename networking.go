@@ -251,12 +251,14 @@ func (rn *realNetworking) listen() error {
 					if msg.IsResponse {
 						if rn.responseMap[msg.ID] == nil {
 							// We were not expecting this response
+							fmt.Println("networking: unsolicited reponse message received")
 							rn.mutex.Unlock()
 							continue
 						}
 
 						if !areNodesEqual(rn.responseMap[msg.ID].node, msg.Sender, isPing) {
 							// TODO should we penalize this node somehow? Ban it?
+							fmt.Println("networking: received response from unexpected node")
 							rn.mutex.Unlock()
 							continue
 						}
@@ -265,13 +267,7 @@ func (rn *realNetworking) listen() error {
 							close(rn.responseMap[msg.ID].ch)
 							delete(rn.responseMap, msg.ID)
 							rn.mutex.Unlock()
-							continue
-						}
-
-						if !msg.IsResponse {
-							close(rn.responseMap[msg.ID].ch)
-							delete(rn.responseMap, msg.ID)
-							rn.mutex.Unlock()
+							fmt.Println("networking: response message type does not match expected type")
 							continue
 						}
 
