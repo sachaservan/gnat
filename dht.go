@@ -171,8 +171,19 @@ func (dht *DHT) ForwardDataVia(node *NetworkNode, sendTo *NetworkNode, data []by
 		fmt.Printf("Error while forwarding: %v", err)
 		return false, err
 	}
-	ack := res.query.Data.(*reponseDataForwardingAck)
-	return ack.Forwarded, res.query.Error
+
+	select {
+	case result := <-res.ch:
+		if result == nil {
+			// Channel was closed
+			return false, nil
+		}
+		ack := result.Data.(*forwardingAckData)
+		return ack.Forwarded, ack.Error
+	case <-time.After(dht.options.TMsgTimeout):
+		dht.networking.cancelResponse(res)
+		return false, errors.New("error: forwarding acknowlegement timed out")
+	}
 }
 
 // NumNodes returns the total number of nodes stored in the local routing table
@@ -569,7 +580,7 @@ func (dht *DHT) listen() {
 				response.Sender = dht.ht.Self
 				response.Receiver = msg.Sender
 				response.Type = messageTypeForwardingAck
-				response.Data = &reponseDataForwardingAck{Forwarded: true}
+				response.Data = &forwardingAckData{Forwarded: err == nil, Error: err}
 				dht.networking.sendMessage(response, false, msg.ID)
 			}
 

@@ -24,8 +24,9 @@ type message struct {
 	Data       interface{}
 }
 
-type reponseDataForwardingAck struct {
+type forwardingAckData struct {
 	Forwarded bool
+	Error     error
 }
 
 type queryDataFindNode struct {
@@ -45,6 +46,7 @@ func netMsgInit() {
 	gob.Register(&queryDataFindNode{})
 	gob.Register(&responseDataFindNode{})
 	gob.Register(&forwardingRequestData{})
+	gob.Register(&forwardingAckData{})
 }
 
 func serializeMessage(q *message) ([]byte, error) {
