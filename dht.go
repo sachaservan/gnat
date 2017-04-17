@@ -167,11 +167,11 @@ func (dht *DHT) ForwardDataVia(node *NetworkNode, sendTo *NetworkNode, data []by
 	message.Type = messageTypeForwardingRequest
 	message.Data = &forwardingRequestData{SendTo: sendTo, Data: data}
 	res, err := dht.networking.sendMessage(message, true, -1)
-	fmt.Printf("Error while forwarding: %v", err)
 	if err != nil {
+		fmt.Printf("Error while forwarding: %v", err)
 		return false, err
 	}
-	ack := res.query.Data.(reponseDataForwardingAck)
+	ack := res.query.Data.(*reponseDataForwardingAck)
 	return ack.Forwarded, res.query.Error
 }
 
