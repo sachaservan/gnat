@@ -71,7 +71,7 @@ type Options struct {
 	// The maximum time to wait for a response to any message
 	TMsgTimeout time.Duration
 
-	OnForwardRequest func(sendToIP string, msg []byte)
+	ForwardingHandler func(sendToIP string, msg []byte) error
 }
 
 // NewDHT initializes a new DHT node. A store and options struct must be
@@ -162,19 +162,19 @@ func (dht *DHT) FindNode(key string) (foundNode *NetworkNode, err error) {
 
 // ForwardData sends a forwarding data to responsible node which then
 // sends it to the recepient
-func (dht *DHT) ForwardData(node *NetworkNode, sendTo *NetworkNode, data []byte) error {
+func (dht *DHT) ForwardDataVia(node *NetworkNode, sendTo *NetworkNode, data []byte) error {
 	message := &message{}
 	message.Sender = dht.ht.Self
 	message.Receiver = node
 	message.Type = messageTypeForwardingRequest
 	message.Data = &forwardingRequestData{SendTo: sendTo, Data: data}
-	_, err := dht.networking.sendMessage(message, false, -1)
+	res, err := dht.networking.sendMessage(message, true, -1)
 
 	if err != nil {
 		return err
 	}
 
-	return nil
+	return res.query.Error
 }
 
 // NumNodes returns the total number of nodes stored in the local routing table
@@ -536,11 +536,13 @@ func (dht *DHT) listen() {
 	for {
 		select {
 		case msg := <-dht.networking.getMessage():
+
 			if msg == nil {
 				// Disconnected
 				dht.networking.messagesFin()
 				return
 			}
+
 			switch msg.Type {
 			case messageTypeFindNode:
 				data := msg.Data.(*queryDataFindNode)
@@ -564,8 +566,16 @@ func (dht *DHT) listen() {
 				fmt.Println("Received forwarding request from " + msg.Sender.IP.String())
 				forwardingInfo := msg.Data.(*forwardingRequestData)
 				sendToAddr := forwardingInfo.SendTo.IP.String()
-				dht.options.OnForwardRequest(sendToAddr, forwardingInfo.Data)
+				err := dht.options.ForwardingHandler(sendToAddr, forwardingInfo.Data)
+
+				// respond to node which acknowledgement of forward (or error)
+				response := &message{IsResponse: true, Error: err}
+				response.Sender = dht.ht.Self
+				response.Receiver = msg.Sender
+				response.Type = messageTypeForwardingAck
+				dht.networking.sendMessage(response, false, msg.ID)
 			}
+
 		case <-dht.networking.getDisconnect():
 			dht.networking.messagesFin()
 			return

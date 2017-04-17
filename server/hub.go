@@ -50,15 +50,17 @@ func newHub() *Hub {
 	}
 }
 
-func (h *Hub) sendMessageToAddr(sendToIP string, message []byte) {
+func (h *Hub) sendMessageToClient(sendToIP string, message []byte) error {
 
-	fmt.Print("Sending data to client...")
 	if client, ok := h.clients[sendToIP]; ok {
+		fmt.Print("Sending data to client")
 		client.send <- message
-		fmt.Println("done")
 	} else {
 		fmt.Println("\nError: client not connected")
+		return errors.New("forward: " + sendToIP + " not connected")
 	}
+
+	return nil
 }
 
 func (h *Hub) run(cb onForwardDataReceived) {

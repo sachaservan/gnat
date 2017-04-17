@@ -252,6 +252,7 @@ func (ht *hashTable) getDistance(id1 []byte, id2 []byte) *big.Int {
 func (ht *hashTable) getRandomIDFromBucket(bucket int) []byte {
 	ht.mutex.Lock()
 	defer ht.mutex.Unlock()
+
 	// Set the new ID to to be equal in every byte up to
 	// the byte of the first differing bit in the bucket
 

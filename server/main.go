@@ -11,6 +11,8 @@ import (
 
 	"strings"
 
+	"time"
+
 	"github.com/ccding/go-stun/stun"
 	b58 "github.com/jbenet/go-base58"
 )
@@ -19,11 +21,11 @@ var maxRouteCacheSize = 500
 var addr = flag.String("localhost", ":2222", "http service address")
 var dht *gnat.DHT
 var hub *Hub
-var routes map[string]*gnat.NetworkNode
+var forwardingCache map[string]*gnat.NetworkNode
 
 func main() {
 	// keep a route cache
-	routes = make(map[string]*gnat.NetworkNode)
+	forwardingCache = make(map[string]*gnat.NetworkNode)
 
 	// test the network to discovery what type of NAT (if any)
 	// the client is behind.
@@ -55,24 +57,44 @@ func main() {
 	}
 }
 
-func onForwardRequestReceived(forwardToIP string, rqst []byte) {
-	hub.sendMessageToAddr(forwardToIP, rqst)
-}
+func forwardingRequestHandler(fromAddr string, header map[string]string, data []byte) {
 
-func onForwardData(fromAddr string, header map[string]string, data []byte) {
+	ip := strings.Split(fromAddr, ":")[0]
+	ipDigest := sha256.Sum256([]byte(ip))
+	id := b58.Encode(ipDigest[:])
 
-	resp := map[string]string{}
-
-	sendTo := header["send_to"]
+	sendTo := header["to"]
 	if sendTo == "" {
 		return
 	}
 
 	fmt.Println("Received forwarding request from " + fromAddr)
 
-	resp["from"] = fromAddr
-	respHeader, _ := json.Marshal(resp)
-	forwardMessage(sendTo, append(respHeader, data...))
+	msg := make(map[string]string)
+	msg["from"] = fromAddr
+	msg["ts"] = time.Now().Format(time.RFC3339)
+	msgHeader, _ := json.Marshal(msg)
+
+	var err error
+	var foundNode *gnat.NetworkNode
+	if node, ok := forwardingCache[id]; ok {
+		foundNode = node
+	} else {
+		foundNode, err = dht.FindNode(id)
+		forwardingCache[id] = foundNode
+
+		// if cache too big, reset it
+		if len(forwardingCache) > maxRouteCacheSize {
+			forwardingCache = make(map[string]*gnat.NetworkNode)
+		}
+	}
+
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		fmt.Println("Forwarding data to ", foundNode.IP.String())
+		dht.ForwardDataVia(foundNode, gnat.NewNetworkNode(ip, "0"), append(msgHeader, data...))
+	}
 }
 
 func handConnectionRequest(w http.ResponseWriter, r *http.Request) {
@@ -117,7 +139,7 @@ func setupServer() {
 	fmt.Print("4) Setting up HTTP server...")
 	flag.Parse()
 	hub = newHub()
-	go hub.run(onForwardData)
+	go hub.run(forwardingRequestHandler)
 	http.HandleFunc("/", handConnectionRequest)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
@@ -147,11 +169,11 @@ func initializeDHT() {
 
 	var err error
 	dht, err = gnat.NewDHT(&gnat.Options{
-		BootstrapNodes:   bootstrapNodes,
-		IP:               *ip,
-		Port:             *port,
-		UseStun:          *stun,
-		OnForwardRequest: onForwardRequestReceived,
+		BootstrapNodes:    bootstrapNodes,
+		IP:                *ip,
+		Port:              *port,
+		UseStun:           *stun,
+		ForwardingHandler: hub.sendMessageToClient,
 	})
 
 	fmt.Print("2) Opening socket...")
@@ -173,32 +195,5 @@ func initializeDHT() {
 		fmt.Println("done")
 	} else {
 		fmt.Println("3) Skipping GNAT bootstrap")
-	}
-}
-
-func forwardMessage(ip string, msg []byte) {
-	ipDigest := sha256.Sum256([]byte(ip))
-	id := b58.Encode(ipDigest[:])
-	fmt.Print("Finding forwarding node for id " + id + "...")
-
-	var err error
-	var foundNode *gnat.NetworkNode
-	if node, ok := routes[id]; ok {
-		foundNode = node
-	} else {
-		foundNode, err = dht.FindNode(id)
-		routes[id] = foundNode
-		if len(routes) > maxRouteCacheSize {
-			// clear the list
-			routes = make(map[string]*gnat.NetworkNode)
-		}
-	}
-
-	fmt.Println("done")
-	if err != nil {
-		fmt.Println(err.Error())
-	} else {
-		fmt.Println("Forwarding data to ", foundNode.IP.String())
-		dht.ForwardData(foundNode, gnat.NewNetworkNode(ip, "0"), msg)
 	}
 }

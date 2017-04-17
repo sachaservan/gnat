@@ -11,6 +11,7 @@ const (
 	messageTypePing = iota
 	messageTypeFindNode
 	messageTypeForwardingRequest
+	messageTypeForwardingAck
 )
 
 type message struct {

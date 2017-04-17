@@ -130,20 +130,21 @@ func (rn *realNetworking) createSocket(host string, port string, useStun bool, s
 	}
 
 	rn.remoteAddress = remoteAddress
-
 	rn.connected = true
-
 	rn.socket = socket
 
 	return host, port, nil
 }
 
 func (rn *realNetworking) sendMessage(msg *message, expectResponse bool, id int64) (*expectedResponse, error) {
+
 	rn.mutex.Lock()
+
 	if id == -1 {
 		id = rn.msgCounter
 		rn.msgCounter++
 	}
+
 	msg.ID = id
 	rn.mutex.Unlock()
 
@@ -165,12 +166,14 @@ func (rn *realNetworking) sendMessage(msg *message, expectResponse bool, id int6
 	if expectResponse {
 		rn.mutex.Lock()
 		defer rn.mutex.Unlock()
+
 		expectedResponse := &expectedResponse{
 			ch:    make(chan (*message)),
 			node:  msg.Receiver,
 			query: msg,
 			id:    id,
 		}
+
 		// TODO we need a way to automatically clean these up as there are
 		// cases where they won't be removed manually
 		rn.responseMap[id] = expectedResponse
@@ -279,7 +282,9 @@ func (rn *realNetworking) listen() error {
 						close(rn.responseMap[msg.ID].ch)
 						delete(rn.responseMap, msg.ID)
 						rn.mutex.Unlock()
+
 					} else {
+
 						assertion := false
 						switch msg.Type {
 						case messageTypeFindNode:
@@ -299,10 +304,12 @@ func (rn *realNetworking) listen() error {
 						rn.recvChan <- msg
 						rn.mutex.Unlock()
 					}
+
 				} else {
 					rn.mutex.Unlock()
 				}
 			}
+
 		}(conn)
 	}
 }
