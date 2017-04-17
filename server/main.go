@@ -61,10 +61,9 @@ func sendMessageToClient(sendToIP string, message []byte) error {
 	return hub.sendMessageToClient(sendToIP, message)
 }
 
-func forwardingRequestHandler(fromAddr string, header map[string]string, data []byte) {
+func forwardingRequestHandler(fromIP string, header map[string]string, data []byte) {
 
-	ip := strings.Split(fromAddr, ":")[0]
-	ipDigest := sha256.Sum256([]byte(ip))
+	ipDigest := sha256.Sum256([]byte(fromIP))
 	id := b58.Encode(ipDigest[:])
 
 	sendTo := header["to"]
@@ -72,10 +71,10 @@ func forwardingRequestHandler(fromAddr string, header map[string]string, data []
 		return
 	}
 
-	fmt.Println("Received forwarding request from " + fromAddr)
+	fmt.Println("Received forwarding request from " + fromIP)
 
 	msg := make(map[string]string)
-	msg["from"] = fromAddr
+	msg["from"] = fromIP
 	msg["ts"] = time.Now().Format(time.RFC3339)
 	msgHeader, _ := json.Marshal(msg)
 
@@ -84,6 +83,7 @@ func forwardingRequestHandler(fromAddr string, header map[string]string, data []
 	if node, ok := forwardingCache[id]; ok {
 		foundNode = node
 	} else {
+		fmt.Println("Performing Kademlia.FIND_NODE operation")
 		foundNode, err = dht.FindNode(id)
 		forwardingCache[id] = foundNode
 
@@ -97,7 +97,7 @@ func forwardingRequestHandler(fromAddr string, header map[string]string, data []
 		fmt.Println(err.Error())
 	} else {
 		fmt.Println("Forwarding data to ", foundNode.IP.String())
-		dht.ForwardDataVia(foundNode, gnat.NewNetworkNode(ip, "0"), append(msgHeader, data...))
+		dht.ForwardDataVia(foundNode, gnat.NewNetworkNode(fromIP, "0"), append(msgHeader, data...))
 	}
 }
 
@@ -113,7 +113,7 @@ func handConnectionRequest(w http.ResponseWriter, r *http.Request) {
 
 	if err == nil {
 		if string(node.ID) == string(dht.GetSelfID()) {
-			fmt.Println("New connection from " + r.RemoteAddr + " id: " + id)
+			fmt.Println("New connection from " + r.RemoteAddr)
 			//log.Println(r.URL)
 
 			if r.URL.Path != "/" {
