@@ -39,7 +39,7 @@ func main() {
 	fmt.Print("1) Testing network...")
 	nat, host, err := stun.NewClient().Discover()
 	if err != nil {
-		fmt.Println("Error:a problem occured while testing your network.")
+		fmt.Println("error:a problem occured while testing your network.")
 		fmt.Println("TODO: try again later.")
 	}
 
@@ -52,7 +52,7 @@ func main() {
 		setupServer()
 		fmt.Println("GNAT node setup and running!")
 	} else {
-		fmt.Println("Error: your network configuration does not support running a GNAT node.")
+		fmt.Println("error: your network configuration does not support running a GNAT node.")
 		fmt.Println("TODO: update your router settings to have less restrictive settings and try again.")
 	}
 }
@@ -102,7 +102,7 @@ func forwardingRequestHandler(fromIP string, header map[string]string, data []by
 		if err != nil {
 			fmt.Println(err)
 		}
-		fmt.Printf("Did forward %v", success)
+		fmt.Printf("Did forward %v\n", success)
 	}
 }
 
