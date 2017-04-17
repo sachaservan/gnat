@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/json"
 	"flag"
@@ -114,7 +115,7 @@ func handConnectionRequest(w http.ResponseWriter, r *http.Request) {
 	node, err := dht.FindNode(id)
 
 	if err == nil {
-		if string(node.ID) == string(dht.GetSelfID()) {
+		if bytes.Compare(node.ID, dht.GetSelfID()) == 0 {
 			fmt.Println("New connection from " + r.RemoteAddr)
 			//log.Println(r.URL)
 

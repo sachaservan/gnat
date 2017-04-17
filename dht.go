@@ -147,6 +147,7 @@ func (dht *DHT) FindNode(key string) (foundNode *NetworkNode, err error) {
 	}
 
 	if dht.ht.totalNodes() == 0 {
+		fmt.Println("find node: no nodes in bucket")
 		return dht.ht.Self, nil
 	}
 
@@ -337,6 +338,7 @@ func (dht *DHT) iterate(t int, target []byte, data []byte) (foundNode *NetworkNo
 		dht.ht.getCloserNode(dht.ht.Self, closestNode, target).ID, dht.ht.Self.ID)
 
 	if nodeCompare == 0 {
+		fmt.Println("iterate: closest node found " + closestNode.IP.String())
 		return dht.ht.Self, nil
 	}
 
