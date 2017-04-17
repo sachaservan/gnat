@@ -25,8 +25,7 @@ type message struct {
 }
 
 type forwardingAckData struct {
-	Forwarded bool
-	Error     error
+	Success bool
 }
 
 type queryDataFindNode struct {

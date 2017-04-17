@@ -179,7 +179,7 @@ func (dht *DHT) ForwardDataVia(node *NetworkNode, sendTo *NetworkNode, data []by
 			return false, nil
 		}
 		ack := result.Data.(*forwardingAckData)
-		return ack.Forwarded, ack.Error
+		return ack.Success, result.Error
 	case <-time.After(dht.options.TMsgTimeout):
 		dht.networking.cancelResponse(res)
 		return false, errors.New("error: forwarding acknowlegement timed out")
@@ -580,7 +580,7 @@ func (dht *DHT) listen() {
 				response.Sender = dht.ht.Self
 				response.Receiver = msg.Sender
 				response.Type = messageTypeForwardingAck
-				response.Data = &forwardingAckData{Forwarded: err == nil, Error: err}
+				response.Data = &forwardingAckData{Success: err == nil}
 				_, err = dht.networking.sendMessage(response, false, msg.ID)
 				if err != nil {
 					fmt.Printf("error: sending response failed %v\n", err)
