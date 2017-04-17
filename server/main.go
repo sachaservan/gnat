@@ -97,6 +97,7 @@ func forwardingRequestHandler(fromIP string, header map[string]string, data []by
 		fmt.Println(err.Error())
 	} else {
 		fmt.Println("Forwarding data to ", foundNode.IP.String())
+		success := false
 		success, err = dht.ForwardDataVia(foundNode, gnat.NewNetworkNode(sendTo, "0"), append(msgHeader, data...))
 		if err != nil {
 			fmt.Println(err)
