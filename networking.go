@@ -229,13 +229,34 @@ func (rn *realNetworking) listen() error {
 				if err != nil {
 					if err.Error() == "EOF" {
 						// Node went bye bye
+						return
 					}
 					// TODO should we penalize this node somehow? Ban it?
 					fmt.Println("networking: invalid message serialization")
 					return
 				}
 
-				isPing := msg.Type == messageTypePing || msg.Type == messageTypePingBack
+				isPing := msg.Type == messageTypePing || msg.Type == messageTypePong
+				messageType := "FIND_NODE"
+				switch msg.Type {
+				case messageTypePing:
+					messageType = "PING"
+					break
+				case messageTypePong:
+					messageType = "PONG"
+					break
+				case messageTypeForwardingRequest:
+					messageType = "FORWARDING_REQUEST"
+					break
+				case messageTypeForwardingAck:
+					messageType = "FORWARDING_ACKNOWLEDGMENT"
+					break
+				case messageTypeFindNode:
+					messageType = "FIND_NODE"
+					break
+				}
+
+				fmt.Printf("networking: %v message received from %v\n", messageType, msg.Sender.IP.String())
 
 				if !areNodesEqual(msg.Receiver, rn.self, isPing) {
 					fmt.Println("networking: bad receiver in message")

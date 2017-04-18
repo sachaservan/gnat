@@ -576,7 +576,7 @@ func (dht *DHT) listen() {
 				response := &message{IsResponse: true}
 				response.Sender = dht.ht.Self
 				response.Receiver = msg.Sender
-				response.Type = messageTypePingBack
+				response.Type = messageTypePong
 				dht.networking.sendMessage(response, false, msg.ID)
 			case messageTypeForwardingRequest:
 				fmt.Println("Received forwarding request from " + msg.Sender.IP.String())
