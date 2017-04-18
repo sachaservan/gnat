@@ -72,6 +72,8 @@ type Options struct {
 	ForwardingHandler func(sendToIP string, msg []byte) error
 }
 
+type forwardingAckHandler func(success bool, errCode int, errMsg string)
+
 // NewDHT initializes a new DHT node. A store and options struct must be
 // provided.
 func NewDHT(options *Options) (*DHT, error) {
@@ -161,7 +163,7 @@ func (dht *DHT) FindNode(key string) (foundNode *NetworkNode, err error) {
 
 // ForwardDataVia sends a forwarding data to responsible node which then
 // sends it to the recepient
-func (dht *DHT) ForwardDataVia(node *NetworkNode, sendTo *NetworkNode, data []byte) (bool, error) {
+func (dht *DHT) ForwardDataVia(node *NetworkNode, sendTo *NetworkNode, data []byte, cb forwardingAckHandler) {
 	message := &message{}
 	message.Sender = dht.ht.Self
 	message.Receiver = node
@@ -170,24 +172,28 @@ func (dht *DHT) ForwardDataVia(node *NetworkNode, sendTo *NetworkNode, data []by
 	res, err := dht.networking.sendMessage(message, true, -1)
 	if err != nil {
 		fmt.Printf("forwarding: %v\n", err)
-		return false, err
+		cb(false, errorTypeUnknown, "unknown")
 	}
 
-	select {
-	case result := <-res.ch:
-		if result == nil {
-			// Channel was closed
-			return false, nil
+	go func() {
+		select {
+		case result := <-res.ch:
+			if result == nil {
+				cb(false, errorTypeUnknown, "unknown")
+			}
+
+			ack := result.Data.(*forwardingAckData)
+			if ack.ErrorMsg != nil {
+				cb(ack.Success, ack.ErrorType, string(ack.ErrorMsg))
+			} else {
+				cb(false, errorTypeUnknown, "unknown")
+			}
+
+		case <-time.After(dht.options.TMsgTimeout):
+			dht.networking.cancelResponse(res)
+			cb(false, errorTypeAcknowledgementTimeout, "forwarding acknowlegement timed out")
 		}
-		ack := result.Data.(*forwardingAckData)
-		if ack.ErrorMsg != nil {
-			return ack.Success, errors.New(string(ack.ErrorMsg))
-		}
-		return ack.Success, nil
-	case <-time.After(dht.options.TMsgTimeout):
-		dht.networking.cancelResponse(res)
-		return false, errors.New("error: forwarding acknowlegement timed out")
-	}
+	}()
 }
 
 // NumNodes returns the total number of nodes stored in the local routing table

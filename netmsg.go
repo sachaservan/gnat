@@ -17,6 +17,8 @@ const (
 
 const (
 	errorTypeClientNotConnected = iota
+	errorTypeAcknowledgementTimeout
+	errorTypeUnknown
 )
 
 type message struct {

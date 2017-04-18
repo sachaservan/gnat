@@ -62,6 +62,10 @@ func sendMessageToClient(sendToIP string, message []byte) error {
 	return hub.sendMessageToClient(sendToIP, message)
 }
 
+func aknowledgementHandler(success bool, errCode int, errMsg string) {
+	fmt.Printf("Did forward: %v, %v\n", success, errMsg)
+}
+
 func forwardingRequestHandler(fromIP string, header map[string]string, data []byte) {
 
 	sendTo := header["to"]
@@ -98,9 +102,7 @@ func forwardingRequestHandler(fromIP string, header map[string]string, data []by
 		fmt.Println(err.Error())
 	} else {
 		fmt.Println("Forwarding data to ", foundNode.IP.String())
-		success := false
-		success, err = dht.ForwardDataVia(foundNode, gnat.NewNetworkNode(sendTo, "0"), append(msgHeader, data...))
-		fmt.Printf("Did forward: %v, %v\n", success, err)
+		dht.ForwardDataVia(foundNode, gnat.NewNetworkNode(sendTo, "0"), append(msgHeader, data...), aknowledgementHandler)
 	}
 }
 
@@ -117,7 +119,6 @@ func handConnectionRequest(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		if bytes.Compare(node.ID, dht.GetSelfID()) == 0 {
 			fmt.Println("New connection from " + r.RemoteAddr)
-			//log.Println(r.URL)
 
 			if r.URL.Path != "/" {
 				http.Error(w, "Not found", 404)
