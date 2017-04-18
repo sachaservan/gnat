@@ -495,6 +495,8 @@ func (dht *DHT) addNode(node *node) {
 
 	bucket := dht.ht.RoutingTable[index]
 
+	fmt.Println("dht: adding node " + node.IP.String())
+
 	if len(bucket) == k {
 		// If the bucket is full we need to ping the first node to find out
 		// if it responds back in a reasonable amount of time. If not -
