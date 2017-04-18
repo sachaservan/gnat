@@ -573,6 +573,7 @@ func (dht *DHT) listen() {
 				response.Data = responseData
 				dht.networking.sendMessage(response, false, msg.ID)
 			case messageTypePing:
+				dht.addNode(newNode(msg.Sender))
 				response := &message{IsResponse: true}
 				response.Sender = dht.ht.Self
 				response.Receiver = msg.Sender
