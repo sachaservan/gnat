@@ -231,18 +231,21 @@ func (rn *realNetworking) listen() error {
 						// Node went bye bye
 					}
 					// TODO should we penalize this node somehow? Ban it?
+					fmt.Println("networking: invalid message serialization")
 					return
 				}
 
-				isPing := msg.Type == messageTypePing
+				isPing := msg.Type == messageTypePing || msg.Type == messageTypePingBack
 
 				if !areNodesEqual(msg.Receiver, rn.self, isPing) {
+					fmt.Println("networking: bad receiver in message")
 					// TODO should we penalize this node somehow? Ban it?
 					continue
 				}
 
 				if msg.ID < 0 {
 					// TODO should we penalize this node somehow? Ban it?
+					fmt.Println("networking: invalid message id")
 					continue
 				}
 

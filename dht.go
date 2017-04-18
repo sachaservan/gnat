@@ -281,11 +281,13 @@ func (dht *DHT) Bootstrap() error {
 					// If result is nil, channel was closed
 					if result != nil {
 						dht.addNode(newNode(result.Sender))
+						fmt.Println("dht: bootstrap successful")
 					}
 					wg.Done()
 					return
 				case <-time.After(dht.options.TMsgTimeout):
 					dht.networking.cancelResponse(r)
+					fmt.Println("error: bootstrap node did not respond")
 					wg.Done()
 					return
 				}
@@ -495,8 +497,6 @@ func (dht *DHT) addNode(node *node) {
 
 	bucket := dht.ht.RoutingTable[index]
 
-	fmt.Println("dht: adding node " + node.IP.String())
-
 	if len(bucket) == k {
 		// If the bucket is full we need to ping the first node to find out
 		// if it responds back in a reasonable amount of time. If not -
@@ -522,6 +522,8 @@ func (dht *DHT) addNode(node *node) {
 	} else {
 		bucket = append(bucket, node)
 	}
+
+	fmt.Println("dht: adding node " + node.IP.String())
 
 	dht.ht.RoutingTable[index] = bucket
 }
@@ -574,7 +576,7 @@ func (dht *DHT) listen() {
 				response := &message{IsResponse: true}
 				response.Sender = dht.ht.Self
 				response.Receiver = msg.Sender
-				response.Type = messageTypePing
+				response.Type = messageTypePingBack
 				dht.networking.sendMessage(response, false, msg.ID)
 			case messageTypeForwardingRequest:
 				fmt.Println("Received forwarding request from " + msg.Sender.IP.String())

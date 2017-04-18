@@ -9,6 +9,7 @@ import (
 
 const (
 	messageTypePing = iota
+	messageTypePingBack
 	messageTypeFindNode
 	messageTypeForwardingRequest
 	messageTypeForwardingAck
