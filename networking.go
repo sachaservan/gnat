@@ -232,7 +232,7 @@ func (rn *realNetworking) listen() error {
 						return
 					}
 					// TODO should we penalize this node somehow? Ban it?
-					fmt.Println("networking: invalid message serialization")
+					fmt.Printf("networking: %v\n", err)
 					return
 				}
 
