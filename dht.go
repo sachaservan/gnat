@@ -531,7 +531,7 @@ func (dht *DHT) addNode(node *node) {
 		bucket = append(bucket, node)
 	}
 
-	fmt.Println("dht: adding node " + node.IP.String() + " [" + string(node.ID) + "]")
+	fmt.Println("dht: adding node " + node.IP.String() + " [" + b58.Encode(node.ID) + "]")
 
 	dht.ht.RoutingTable[index] = bucket
 }
