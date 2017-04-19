@@ -49,7 +49,10 @@ func main() {
 	if nat == stun.NATNone || nat == stun.NATFull {
 		fmt.Println("  Network NAT configuration: " + nat.String())
 		fmt.Println("  Node address: " + host.String())
-		initializeDHT()
+		selfIP := strings.Split(host.String(), ":")[0]
+		ipDigest := sha256.Sum256([]byte(selfIP))
+		initializeDHT(ipDigest[:])
+
 		setupServer()
 		fmt.Println("GNAT node setup and running!")
 	} else {
@@ -160,7 +163,7 @@ func setupServer() {
 	}
 }
 
-func initializeDHT() {
+func initializeDHT(selfID []byte) {
 	var ip = flag.String("ip", "0.0.0.0", "IP Address to use")
 	var port = flag.String("port", "1443", "Port to use")
 	var bIP = flag.String("bip", "45.55.18.163", "IP Address to bootstrap against")
@@ -179,6 +182,7 @@ func initializeDHT() {
 	dht, err = gnat.NewDHT(&gnat.Options{
 		BootstrapNodes:    bootstrapNodes,
 		IP:                *ip,
+		ID:                selfID,
 		Port:              *port,
 		UseStun:           *stun,
 		ForwardingHandler: sendMessageToClient,
