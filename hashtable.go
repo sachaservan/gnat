@@ -3,6 +3,7 @@ package gnat
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"math"
 	"math/big"
 	"math/rand"
@@ -11,6 +12,8 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	b58 "github.com/jbenet/go-base58"
 )
 
 const (
@@ -227,14 +230,19 @@ func (ht *hashTable) getAllNodesInBucketCloserThan(bucket int, id []byte) [][]by
 
 func (ht *hashTable) getCloserNode(node1 *NetworkNode, node2 *NetworkNode, id []byte) *NetworkNode {
 
+	fmt.Println("	comparing distances to target: " + b58.Encode(id))
 	d1 := ht.getDistance(id, node1.ID)
 	d2 := ht.getDistance(id, node2.ID)
+	fmt.Println("	distance to " + b58.Encode(node1.ID) + ": " + d1.String())
+	fmt.Println("	distance to " + b58.Encode(node2.ID) + ": " + d2.String())
+
 	result := big.NewInt(0)
 	result.Sub(d1, d2)
 	if result.Sign() <= 0 {
+		fmt.Println("	==> returning " + b58.Encode(node1.ID))
 		return node1
 	}
-
+	fmt.Println("	==> returning " + b58.Encode(node2.ID))
 	return node2
 }
 
