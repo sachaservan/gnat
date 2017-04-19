@@ -259,7 +259,10 @@ func (rn *realNetworking) listen() error {
 				fmt.Printf("networking: %v message received from %v\n", messageType, msg.Sender.IP.String())
 
 				if !areNodesEqual(msg.Receiver, rn.self, isPing) {
-					fmt.Println("networking: bad receiver in message")
+					fmt.Printf("networking: receiver doesn't match self. Intended receiver %v, actual %v\n",
+						msg.Receiver.IP.String()+":"+strconv.Itoa(msg.Receiver.Port),
+						rn.self.IP.String()+":"+strconv.Itoa(rn.self.Port))
+
 					// TODO should we penalize this node somehow? Ban it?
 					continue
 				}
