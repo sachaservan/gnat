@@ -165,7 +165,7 @@ func (ht *hashTable) getClosestContacts(num int, target []byte, ignoredNodes []*
 		j++
 	}
 
-	sl := &shortList{}
+	sl := &shortList{Comparator: target}
 
 	leftToAdd := num
 
