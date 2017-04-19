@@ -56,7 +56,7 @@ func newHashTable(options *Options) (*hashTable, error) {
 
 	if options.ID != nil {
 		if len(options.ID) != b {
-			return nil, errors.New("error: invalid key size " + string(len(options.ID)))
+			return nil, errors.New("error: invalid node ID size " + string(len(options.ID)))
 		}
 		ht.Self.ID = options.ID
 	} else {
