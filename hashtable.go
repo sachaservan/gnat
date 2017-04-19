@@ -55,7 +55,7 @@ func newHashTable(options *Options) (*hashTable, error) {
 	ht.Self = &NetworkNode{}
 
 	if options.ID != nil {
-		if len(options.ID) != b {
+		if len(options.ID) != b/8 {
 			return nil, errors.New("error: invalid node ID size " + string(len(options.ID)))
 		}
 		ht.Self.ID = options.ID

@@ -188,6 +188,11 @@ func initializeDHT(selfID []byte) {
 		ForwardingHandler: sendMessageToClient,
 	})
 
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	fmt.Print("2) Opening socket...")
 
 	err = dht.CreateSocket()
