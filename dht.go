@@ -183,10 +183,10 @@ func (dht *DHT) ForwardDataVia(node *NetworkNode, sendTo *NetworkNode, data []by
 			}
 
 			ack := result.Data.(*forwardingAckData)
-			if ack.ErrorMsg != nil {
-				cb(ack.Success, ack.ErrorType, string(ack.ErrorMsg))
+			if ack.Success {
+				cb(ack.Success, errorTypeNone, "")
 			} else {
-				cb(false, errorTypeUnknown, "unknown")
+				cb(false, ack.ErrorType, string(ack.ErrorMsg))
 			}
 
 		case <-time.After(dht.options.TMsgTimeout):

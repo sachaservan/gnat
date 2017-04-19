@@ -19,6 +19,7 @@ const (
 	errorTypeClientNotConnected = iota
 	errorTypeAcknowledgementTimeout
 	errorTypeUnknown
+	errorTypeNone
 )
 
 type message struct {
