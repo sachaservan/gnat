@@ -154,6 +154,7 @@ func setupServer() {
 	http.HandleFunc("/", handConnectionRequest)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
+
 		clientIP := strings.Split(r.RemoteAddr, ":")[0]
 		hub.sendMessageToClient(clientIP, []byte("{\"subject\":\"You are now connected to the GNAT network. Welcome to the fold :-)\", \"ts\":"+time.Now().Format(time.RFC3339)+"\"}"))
 
