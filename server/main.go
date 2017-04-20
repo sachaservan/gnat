@@ -134,6 +134,8 @@ func handConnectionRequest(w http.ResponseWriter, r *http.Request) {
 			}
 
 			http.ServeFile(w, r, "./static/home.html")
+			hub.sendMessageToClient(clientIP,
+				[]byte("{\"subject\":\"You are now connected to the GNAT network. Welcome to the fold :-)\", \"ts\":"+time.Now().Format(time.RFC3339)+"\"}"))
 
 		} else {
 			fmt.Println("Redirecting " + r.RemoteAddr + " to http://" + node.IP.String() + ":2222")
