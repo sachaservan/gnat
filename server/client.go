@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"fmt"
@@ -138,8 +137,7 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
 	client.hub.register <- client
 	go client.writePump()
-	clientIP := strings.Split(r.RemoteAddr, ":")[0]
-	hub.sendMessageToClient(clientIP, []byte("{\"subject\":\"You are now connected to the GNAT network. Welcome to the fold :-)\", \"ts\":"+time.Now().Format(time.RFC3339)+"\"}"))
-
+	welcomeMsg := []byte("{\"subject\":\"Welcome to the fold. You are now connected to the GNAT network.\", \"ts\":\"" + time.Now().Format(time.RFC3339) + "\"}")
+	client.send <- welcomeMsg
 	client.readPump()
 }
