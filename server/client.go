@@ -12,8 +12,6 @@ import (
 
 	"fmt"
 
-	"strings"
-
 	"github.com/gorilla/websocket"
 )
 
@@ -140,7 +138,4 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	client.hub.register <- client
 	go client.writePump()
 	client.readPump()
-	clientIP := strings.Split(r.RemoteAddr, ":")[0]
-	hub.sendMessageToClient(clientIP, []byte("{\"subject\":\"You are now connected to the GNAT network. Welcome to the fold :-)\", \"ts\":"+time.Now().Format(time.RFC3339)+"\"}"))
-
 }
