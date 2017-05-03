@@ -53,7 +53,7 @@ func main() {
 
 	var hostAddr string
 	if host == nil {
-		out, _ := exec.Command("curl ipinfo.io/ip").Output()
+		out, _ := exec.Command("curl", "ipinfo.io/ip").Output()
 		hostAddr = string(out)
 	} else {
 		hostAddr = host.String()
