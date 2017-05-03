@@ -62,7 +62,7 @@ func main() {
 	// make sure network is behind leniant NAT
 	fmt.Println("  Network NAT configuration detected: " + nat.String())
 	fmt.Println("  Public IP address: " + hostAddr)
-	if nat == stun.NATNone || nat == stun.NATFull || nat == stun.NATPortRestricted || nat == stun.NATSymetricUDPFirewall {
+	if nat == stun.NATNone || nat == stun.NATFull || nat == stun.NATPortRestricted || nat == stun.NATSymetricUDPFirewall || nat == stun.NATBlocked {
 
 		// generate an ID from the digest of the IP addr
 		selfIP := strings.Split(hostAddr, ":")[0]
