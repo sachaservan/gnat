@@ -170,7 +170,7 @@ func setupServer(host string) {
 	})
 	fmt.Println("done")
 	fmt.Println("Listening on " + host)
-	err := http.ListenAndServe(host, nil)
+	err := http.ListenAndServe(":2222", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
