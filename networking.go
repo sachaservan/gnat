@@ -102,7 +102,7 @@ func (rn *realNetworking) createSocket(host string, port string, useStun bool, s
 
 	remoteAddress := "[" + host + "]" + ":" + port
 
-	socket, err := utp.NewSocket("udp", remoteAddress)
+	socket, err := utp.NewSocket("tcp", remoteAddress)
 	if err != nil {
 		return "", "", err
 	}
