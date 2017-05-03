@@ -14,50 +14,63 @@ import (
 
 	"time"
 
+	"os"
+
 	"github.com/ccding/go-stun/stun"
 	b58 "github.com/jbenet/go-base58"
 )
 
+// cap on how many routing nodes
+// should be remembered
 var maxRouteCacheSize = 500
-var addr = flag.String("localhost", ":2222", "http service address")
+
+// dht of peer GNAT nodes
 var dht *gnat.DHT
+
+// websocket hub to handle client messages
 var hub *Hub
+
+// mapping of ip addresses to gnat peers
 var forwardingCache map[string]*gnat.NetworkNode
 
 func main() {
-	// keep a route cache
+
+	printWelcomeMessage()
+
 	forwardingCache = make(map[string]*gnat.NetworkNode)
 
 	// test the network to discovery what type of NAT (if any)
 	// the client is behind.
-
-	fmt.Println("GNAT Node v0.0.1")
-	fmt.Println("  *Documentation:   https://gnat.cs.brown.edu/docs")
-	fmt.Println("  *Support:         https://gnat.cs.brown.edu/support")
-	fmt.Println("  *GitHub:          https://github.com/ogisan/gnat")
-	fmt.Println("  For more information, visit: http://gnat.cs.brown.edu")
-	fmt.Println("--------------------------------------------------------")
 	fmt.Print("1) Testing network...")
 	nat, host, err := stun.NewClient().Discover()
 	if err != nil {
-		fmt.Println("error:a problem occured while testing your network.")
-		fmt.Println("TODO: try again later.")
+		fmt.Fprintf(os.Stderr, "error: a problem occured while testing your network.")
+		fmt.Fprintf(os.Stderr, "Try again later.")
+		os.Exit(1)
 	}
+	fmt.Println("done.")
 
-	fmt.Println("done")
-	// acceptable type of NATs
-	if nat == stun.NATNone || nat == stun.NATFull {
-		fmt.Println("  Network NAT configuration: " + nat.String())
-		fmt.Println("  Node address: " + host.String())
+	// make sure network is behind leniant NAT
+	fmt.Println("  Network NAT configuration detected: " + nat.String())
+	fmt.Println("  Public IP address: " + host.String())
+	if nat == stun.NATNone || nat == stun.NATFull || nat == stun.NATPortRestricted {
+
+		// generate an ID from the digest of the IP addr
 		selfIP := strings.Split(host.String(), ":")[0]
 		ipDigest := sha256.Sum256([]byte(selfIP))
+
+		// initialize the GNAT dht node
 		initializeDHT(ipDigest[:])
 
-		setupServer()
-		fmt.Println("GNAT node setup and running!")
+		// listen for clients
+		setupServer("127.0.0.1:2222")
+
+		fmt.Println("GNAT node running!")
+
 	} else {
-		fmt.Println("error: your network configuration does not support running a GNAT node.")
-		fmt.Println("TODO: update your router settings to have less restrictive settings and try again.")
+		fmt.Fprintf(os.Stderr, "error: your network configuration does not support running a GNAT node.")
+		fmt.Fprintf(os.Stderr, "Update your router/firewall settings to be less restrictive and try again.")
+		os.Exit(1)
 	}
 }
 
@@ -145,7 +158,7 @@ func handConnectionRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func setupServer() {
+func setupServer(host string) {
 
 	fmt.Print("4) Setting up HTTP server...")
 	flag.Parse()
@@ -156,18 +169,18 @@ func setupServer() {
 		serveWs(hub, w, r)
 	})
 	fmt.Println("done")
-	fmt.Println("Listening on http://127.0.0.1" + *addr)
-	err := http.ListenAndServe(*addr, nil)
+	fmt.Println("Listening on " + host)
+	err := http.ListenAndServe(host, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
 }
 
 func initializeDHT(selfID []byte) {
-	var ip = flag.String("ip", "0.0.0.0", "IP Address to use")
+	var ip = flag.String("ip", "0.0.0.0", "IP address to use")
 	var port = flag.String("port", "1443", "Port to use")
-	var bIP = flag.String("bip", "45.55.18.163", "IP Address to bootstrap against")
-	var bPort = flag.String("bport", "1443", "Port to bootstrap against")
+	var bIP = flag.String("bip", "45.55.18.163", "IP address of bootstrap server")
+	var bPort = flag.String("bport", "1443", "Port of bootstrap server")
 	var stun = flag.Bool("stun", true, "Use STUN")
 
 	flag.Parse()
@@ -213,4 +226,18 @@ func initializeDHT(selfID []byte) {
 	} else {
 		fmt.Println("3) Skipping GNAT bootstrap")
 	}
+}
+
+func printWelcomeMessage() {
+	fmt.Println("\n  _____ _   _       _______  ")
+	fmt.Println(" / ____| \\ | |   /\\|__   __|")
+	fmt.Println("| |  __|  \\| |  /  \\  | |")
+	fmt.Println("| | |_ | . ` | / /\\ \\ | |")
+	fmt.Println("| |__| | |\\  |/ ____ \\| |")
+	fmt.Println(" \\_____|_| \\_/_/    \\_\\_|")
+	fmt.Println("  GNAT Server Node v0.0.1")
+	fmt.Println("    *Documentation:   https://gnat.cs.brown.edu/docs")
+	fmt.Println("    *Support:         https://gnat.cs.brown.edu/support")
+	fmt.Println("    *GitHub:          https://github.com/ogisan/gnat")
+	fmt.Println("    For more information, visit: http://gnat.cs.brown.edu")
 }
