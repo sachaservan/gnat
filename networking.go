@@ -6,10 +6,6 @@ import (
 	"net"
 	"strconv"
 	"sync"
-	"time"
-
-	"github.com/anacrolix/utp"
-	"github.com/ccding/go-stun/stun"
 )
 
 type networking interface {
@@ -28,15 +24,15 @@ type networking interface {
 }
 
 type realNetworking struct {
-	socket        *utp.Socket
+	socket        net.Listener
 	sendChan      chan (*message)
 	recvChan      chan (*message)
 	dcStartChan   chan (int)
 	dcEndChan     chan (int)
 	dcTimersChan  chan (int)
 	dcMessageChan chan (int)
-	address       *net.UDPAddr
-	connection    *net.UDPConn
+	address       *net.TCPAddr
+	connection    *net.TCPConn
 	mutex         *sync.Mutex
 	connected     bool
 	initialized   bool
@@ -99,34 +95,33 @@ func (rn *realNetworking) createSocket(host string, port string, useStun bool, s
 	if rn.connected {
 		return "", "", errors.New("already connected")
 	}
-
 	remoteAddress := "[" + host + "]" + ":" + port
 
-	socket, err := utp.NewSocket("tcp", remoteAddress)
+	socket, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		return "", "", err
 	}
 
 	if useStun {
-		c := stun.NewClientWithConnection(socket)
+		// c := stun.NewClientWithConnection(socket)
 
-		if stunAddr != "" {
-			c.SetServerAddr(stunAddr)
-		}
+		// if stunAddr != "" {
+		// 	c.SetServerAddr(stunAddr)
+		// }
 
-		_, h, err := c.Discover()
-		if err != nil {
-			return "", "", err
-		}
+		// _, h, err := c.Discover()
+		// if err != nil {
+		// 	return "", "", err
+		// }
 
-		_, err = c.Keepalive()
-		if err != nil {
-			return "", "", err
-		}
+		// _, err = c.Keepalive()
+		// if err != nil {
+		// 	return "", "", err
+		// }
 
-		host = h.IP()
-		port = strconv.Itoa(int(h.Port()))
-		remoteAddress = "[" + host + "]" + ":" + port
+		// host = h.IP()
+		// port = strconv.Itoa(int(h.Port()))
+		// remoteAddress = "[" + host + "]" + ":" + port
 	}
 
 	rn.remoteAddress = remoteAddress
@@ -148,7 +143,7 @@ func (rn *realNetworking) sendMessage(msg *message, expectResponse bool, id int6
 	msg.ID = id
 	rn.mutex.Unlock()
 
-	conn, err := rn.socket.DialTimeout("["+msg.Receiver.IP.String()+"]:"+strconv.Itoa(msg.Receiver.Port), time.Second)
+	conn, err := net.Dial("tcp", "["+msg.Receiver.IP.String()+"]:"+strconv.Itoa(msg.Receiver.Port))
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +199,7 @@ func (rn *realNetworking) disconnect() error {
 	close(rn.recvChan)
 	close(rn.dcTimersChan)
 	close(rn.dcMessageChan)
-	err := rn.socket.CloseNow()
+	err := rn.socket.Close()
 	rn.connected = false
 	rn.initialized = false
 	close(rn.dcEndChan)
