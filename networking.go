@@ -99,28 +99,16 @@ func (rn *realNetworking) createSocket(host string, port string, useStun bool, s
 	}
 	remoteAddress := "[" + host + "]" + ":" + port
 
-	socket, err := net.ListenPacket("tcp", ":"+port)
+	socket, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		return "", "", err
 	}
 
 	if useStun {
-		c := stun.NewClientWithConnection(socket)
-
-		if stunAddr != "" {
-			c.SetServerAddr(stunAddr)
-		}
-
-		_, h, err := c.Discover()
+		_, h, err := stun.NewClient().Discover()
 		if err != nil {
 			return "", "", err
 		}
-
-		_, err = c.Keepalive()
-		if err != nil {
-			return "", "", err
-		}
-
 		host = h.IP()
 		port = strconv.Itoa(int(h.Port()))
 		remoteAddress = "[" + host + "]" + ":" + port
