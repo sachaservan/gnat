@@ -110,7 +110,6 @@ func (rn *realNetworking) createSocket(host string, port string, useStun bool, s
 			return "", "", err
 		}
 		host = h.IP()
-		port = strconv.Itoa(int(h.Port()))
 		remoteAddress = "[" + host + "]" + ":" + port
 	}
 
