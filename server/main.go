@@ -9,6 +9,7 @@ import (
 	"gnat"
 	"log"
 	"net/http"
+	"os/exec"
 
 	"strings"
 
@@ -50,13 +51,21 @@ func main() {
 	}
 	fmt.Println("done.")
 
+	var hostAddr string
+	if host == nil {
+		out, _ := exec.Command("curl ipinfo.io/ip").Output()
+		hostAddr = string(out)
+	} else {
+		hostAddr = host.String()
+	}
+
 	// make sure network is behind leniant NAT
 	fmt.Println("  Network NAT configuration detected: " + nat.String())
-	fmt.Println("  Public IP address: " + host.String())
+	fmt.Println("  Public IP address: " + hostAddr)
 	if nat == stun.NATNone || nat == stun.NATFull || nat == stun.NATPortRestricted {
 
 		// generate an ID from the digest of the IP addr
-		selfIP := strings.Split(host.String(), ":")[0]
+		selfIP := strings.Split(hostAddr, ":")[0]
 		ipDigest := sha256.Sum256([]byte(selfIP))
 
 		// initialize the GNAT dht node
