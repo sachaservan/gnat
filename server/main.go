@@ -54,7 +54,7 @@ func main() {
 	var hostAddr string
 	if host == nil {
 		out, _ := exec.Command("curl", "ipinfo.io/ip").Output()
-		hostAddr = string(out)
+		hostAddr = strings.Split(string(out), "\n")[0] + ":1443"
 	} else {
 		hostAddr = host.String()
 	}
