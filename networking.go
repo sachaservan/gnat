@@ -6,6 +6,8 @@ import (
 	"net"
 	"strconv"
 	"sync"
+
+	"github.com/ccding/go-stun/stun"
 )
 
 type networking interface {
@@ -97,31 +99,31 @@ func (rn *realNetworking) createSocket(host string, port string, useStun bool, s
 	}
 	remoteAddress := "[" + host + "]" + ":" + port
 
-	socket, err := net.Listen("tcp", ":"+port)
+	socket, err := net.ListenPacket("tcp", ":"+port)
 	if err != nil {
 		return "", "", err
 	}
 
 	if useStun {
-		// c := stun.NewClientWithConnection(socket)
+		c := stun.NewClientWithConnection(socket)
 
-		// if stunAddr != "" {
-		// 	c.SetServerAddr(stunAddr)
-		// }
+		if stunAddr != "" {
+			c.SetServerAddr(stunAddr)
+		}
 
-		// _, h, err := c.Discover()
-		// if err != nil {
-		// 	return "", "", err
-		// }
+		_, h, err := c.Discover()
+		if err != nil {
+			return "", "", err
+		}
 
-		// _, err = c.Keepalive()
-		// if err != nil {
-		// 	return "", "", err
-		// }
+		_, err = c.Keepalive()
+		if err != nil {
+			return "", "", err
+		}
 
-		// host = h.IP()
-		// port = strconv.Itoa(int(h.Port()))
-		// remoteAddress = "[" + host + "]" + ":" + port
+		host = h.IP()
+		port = strconv.Itoa(int(h.Port()))
+		remoteAddress = "[" + host + "]" + ":" + port
 	}
 
 	rn.remoteAddress = remoteAddress
