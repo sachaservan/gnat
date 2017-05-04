@@ -103,7 +103,8 @@ func (rn *realNetworking) createSocket(host string, port string, useStun bool, s
 	}
 	remoteAddress := "[" + host + "]" + ":" + port
 
-	socket, err := net.Listen("tcp", ":"+port)
+	addr, err := net.ResolveTCPAddr("tcp", remoteAddress)
+	socket, err := net.ListenTCP("tcp", addr)
 	if err != nil {
 		return "", "", err
 	}
@@ -138,7 +139,8 @@ func (rn *realNetworking) sendMessage(msg *message, expectResponse bool, id int6
 	msg.ID = id
 	rn.mutex.Unlock()
 
-	conn, err := net.Dial("tcp", "["+msg.Receiver.IP.String()+"]:"+strconv.Itoa(msg.Receiver.Port))
+	tcpAddr, err := net.ResolveTCPAddr("tcp", "["+msg.Receiver.IP.String()+"]:"+strconv.Itoa(msg.Receiver.Port))
+	conn, err := net.DialTCP("tcp", nil, tcpAddr)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return nil, err
