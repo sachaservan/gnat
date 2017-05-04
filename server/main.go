@@ -9,7 +9,6 @@ import (
 	"gnat"
 	"log"
 	"net/http"
-	"os/exec"
 
 	"strings"
 
@@ -53,8 +52,8 @@ func main() {
 
 	var hostAddr string
 	if host == nil {
-		out, _ := exec.Command("curl", "ipinfo.io/ip").Output()
-		hostAddr = strings.Split(string(out), "\n")[0] + ":1443"
+		//out, _ := exec.Command("curl", "ipinfo.io/ip").Output()
+		//hostAddr = strings.Split(string(out), "\n")[0] + ":1443"
 	} else {
 		hostAddr = host.String()
 	}
