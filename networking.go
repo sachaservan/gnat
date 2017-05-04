@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"time"
+	"os"
 
 	"github.com/ccding/go-stun/stun"
 )
@@ -138,8 +138,9 @@ func (rn *realNetworking) sendMessage(msg *message, expectResponse bool, id int6
 	msg.ID = id
 	rn.mutex.Unlock()
 
-	conn, err := net.DialTimeout("tcp", "["+msg.Receiver.IP.String()+"]:"+strconv.Itoa(msg.Receiver.Port), time.Second)
+	conn, err := net.Dial("tcp", "["+msg.Receiver.IP.String()+"]:"+strconv.Itoa(msg.Receiver.Port))
 	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		return nil, err
 	}
 
