@@ -107,7 +107,8 @@ func (rn *realNetworking) createSocket(host string, port string, useStun bool, s
 	if useStun {
 		_, h, _ := stun.NewClient().Discover()
 
-		remoteAddress = "[" + h.IP() + "]" + ":" + port
+		host = h.IP()
+		remoteAddress = "[" + host + "]" + ":" + port
 	}
 
 	rn.remoteAddress = remoteAddress
