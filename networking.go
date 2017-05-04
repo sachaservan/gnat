@@ -111,9 +111,9 @@ func (rn *realNetworking) createSocket(host string, port string, useStun bool, s
 
 		if h == nil || err != nil {
 			out, _ := exec.Command("curl", "ipinfo.io/ip").Output()
-			host = strings.Split(string(out), "\n")[0] + ":1443"
+			host = strings.Split(string(out), "\n")[0]
 		} else {
-			host = h.String()
+			host = h.IP()
 		}
 	}
 
