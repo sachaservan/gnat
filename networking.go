@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os/exec"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/ccding/go-stun/stun"
@@ -105,10 +107,14 @@ func (rn *realNetworking) createSocket(host string, port string, useStun bool, s
 	}
 
 	if useStun {
-		_, h, _ := stun.NewClient().Discover()
+		_, h, err := stun.NewClient().Discover()
 
-		host = h.IP()
-		remoteAddress = "[" + host + "]" + ":" + port
+		if h == nil || err != nil {
+			out, _ := exec.Command("curl", "ipinfo.io/ip").Output()
+			host = strings.Split(string(out), "\n")[0] + ":1443"
+		} else {
+			host = h.String()
+		}
 	}
 
 	rn.remoteAddress = remoteAddress
